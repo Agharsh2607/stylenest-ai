@@ -8,7 +8,7 @@ const NAV_ITEMS = [
 ]
 
 export default function Sidebar({ activeView, onViewChange, onNewProject }) {
-  const { signOut } = useAuth()
+  const { signOut, user } = useAuth()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
@@ -16,9 +16,12 @@ export default function Sidebar({ activeView, onViewChange, onNewProject }) {
     navigate('/')
   }
 
+  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'
+
   return (
     <aside className="h-screen w-64 fixed left-0 top-0 z-40 bg-zinc-50/80 backdrop-blur-2xl flex flex-col p-4 border-r border-zinc-100">
       <div className="mb-10 px-4 pt-20">
+        <p className="text-sm font-headline font-bold text-zinc-800 truncate">{displayName}</p>
         <p className="text-xs text-zinc-500 font-headline">Pro Plan</p>
       </div>
 

@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from './hooks/useAuth'
-import { isSupabaseConfigured } from './services/supabase'
 import Navbar from './components/Navbar'
 import LandingPage from './pages/LandingPage'
 import AuthPage from './pages/AuthPage'
@@ -10,13 +9,11 @@ import ResultView from './pages/ResultView'
 import Canvas3D from './pages/Canvas3D'
 import Pricing from './pages/Pricing'
 
-/** Protected route wrapper — redirects to /auth if not logged in.
- *  In demo mode (no Supabase configured), always allows access. */
+/** Protected route wrapper — redirects to /auth if not logged in. */
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
-  const demoMode = !isSupabaseConfigured()
 
-  if (loading && !demoMode) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface">
         <div className="text-center">
@@ -27,7 +24,7 @@ function ProtectedRoute({ children }) {
     )
   }
 
-  if (!demoMode && !user) return <Navigate to="/auth" replace />
+  if (!user) return <Navigate to="/auth" replace />
   return children
 }
 

@@ -1,10 +1,13 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, useScroll, useTransform } from 'framer-motion'
+import { useAuth } from '../hooks/useAuth'
 
 export default function Navbar() {
   const location = useLocation()
+  const navigate = useNavigate()
   const isHome = location.pathname === '/'
   const { scrollY } = useScroll()
+  const { user } = useAuth()
 
   // On home: transparent → dark on scroll
   // On other pages: always dark
@@ -59,12 +62,12 @@ export default function Navbar() {
           })}
         </div>
 
-        <Link
-          to="/auth"
+        <button
+          onClick={() => navigate(user ? '/workspace' : '/auth')}
           className="bg-primary-gradient text-white px-6 py-2.5 rounded-xl font-headline font-bold text-sm transition-transform active:scale-95 shadow-lg shadow-primary/20"
         >
           Start Designing
-        </Link>
+        </button>
       </nav>
     </motion.header>
   )

@@ -14,8 +14,11 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (!isSupabaseConfigured() || !supabase) {
-      // Demo mode — no Supabase configured
-      console.warn('⚠️ Supabase not configured — running in demo mode. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.')
+      // Demo mode — restore user from localStorage if present
+      const stored = localStorage.getItem('stylenest_user')
+      if (stored) {
+        try { setUser(JSON.parse(stored)) } catch { localStorage.removeItem('stylenest_user') }
+      }
       setLoading(false)
       return
     }
@@ -43,8 +46,9 @@ export function AuthProvider({ children }) {
   const signUp = async (email, password) => {
     if (!supabase) {
       // Demo mode: simulate signup
-      const demoUser = { id: 'demo-user', email }
+      const demoUser = { id: 'demo-user', email, user_metadata: { full_name: email.split('@')[0] } }
       setUser(demoUser)
+      localStorage.setItem('stylenest_user', JSON.stringify(demoUser))
       return { user: demoUser }
     }
     const { data, error } = await supabase.auth.signUp({ email, password })
@@ -56,8 +60,9 @@ export function AuthProvider({ children }) {
   const signIn = async (email, password) => {
     if (!supabase) {
       // Demo mode: simulate login
-      const demoUser = { id: 'demo-user', email }
+      const demoUser = { id: 'demo-user', email, user_metadata: { full_name: email.split('@')[0] } }
       setUser(demoUser)
+      localStorage.setItem('stylenest_user', JSON.stringify(demoUser))
       return { user: demoUser }
     }
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
@@ -83,6 +88,7 @@ export function AuthProvider({ children }) {
     if (!supabase) {
       setUser(null)
       setSession(null)
+      localStorage.removeItem('stylenest_user')
       return
     }
     const { error } = await supabase.auth.signOut()

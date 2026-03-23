@@ -7,29 +7,88 @@ import Sidebar from '../components/Sidebar'
 const FALLBACK_BEFORE = 'https://lh3.googleusercontent.com/aida-public/AB6AXuBiET0wZ23lpnCcxoagwJYUQoV2qjOmjBRJm62XynjS1q5NRlXA9VpEfYBoHaQsVgPw9lzvzUwWOguH9i3xyiFvvLSs1AbuSvKWAGCAVyiZDLfLciCC0kQ6z3_B0hcBzQDvpFde7pNkQ2HTfZuYKppZOXIHqLeTvNiC7LhD5F_Xau8kDjtt9GBVOrMhwBy1h_hRVvfLKS5MTbAM4IW9RdqBcU2s5CrOI7r8f-W4xv6cNdLKfaWRnt5zc5cpedczu7aIGGjRAvyH0kc'
 const FALLBACK_AFTER = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDTNExI2_zm3EMMdLnCH7hgjOud42MpmTMMwfSVb1qIAjSkLjVUqpaXRwVJdEOamDurBb3a0RqO_AvqK9XzRTz7iJg4vrZlMWiDgN11EFw954ZaV4BSlGork0y-m03ol3cNjyn59_bHCy-h_xKHp3IUZgjRG3v-dTh1TTduxwer2LWzKPWx6GFa0BAX3FSj1hmI6MDIXHzPwpziwgY176NI-LIodMKJsC_c1x1A6CxqfY15PMNnWH9Kav2b8OzNZK-zDok13nMWnAo'
 
-const SUGGESTIONS = [
-  { img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDyqJTCO1yyf79LHkvErI6JuJC47MHa39bymjjIQpgwkeKzHIK7pM62-PaPoIhO1SdAFmPhuUmYghCIlS6XeQwwmBT-ZBp6kwGxuUSVuO5JQcEtr0Sy2Babldr52e2FE80lrJOX9TBJWtUF-PqJi_rEGLxhlj0fIsxJebXiJNPCXa5LkPEojodOLVpb35FWS5Ialjk1vqVYEMG_6V8cb-cnHyayoDH1X54LNuNjqyqcm7DEYN6E_FH4OqdKD4gNoxTUfnMaNXGy8uw',
-    title: 'Nordic Minimalist', desc: 'Clean lines, lighter wood, and cool tones.' },
-  { img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDNS670yeopKoKUUoZu7Ga5-pGQHCGfupNkxy6nrCha-dKTQJj_PYGr4cq32ywtmJKO-rAXNcZpDPSbCSuQ6cPQvOtmEgtKbVLlTcChoLC5LhfCwLOGodnAcE2dIdCEeprsQPdhoh_MJyZJQP8xfhRBYgrDGnCxiGtJOUrEczT03VnD-_zQfGLAtTiCwx7SRSh5S-A7IjcFszMnv6Hj7Hzqx0oMMGKkB81TZFsHg1vGnflm53KbdbpZQ5Iucrr0o1Slj1chZ9BchBM',
-    title: 'Industrial Loft', desc: 'Exposed brick, metal accents, and raw textures.' },
-  { img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCTxTZPvIMD-HI1tOXIX3kf6no6g7h8zHEdNof3rlSLqer3wgMgLTYCDUPp6a_DADq51AXYc17dHUGU46INRAVAZ3mkmUrEGjWppEn9eRzeSDbmKK4ZWyx_ShD9kmX_8Z_gZPTwodlq3qbnGroOyfAL4eTIRQDpFmZy3Zre6DkV43otaE1DcrUNg3FNQSPxpRWm2eeMomgNZwPKKba6AgsVW7FEec6EBK9lLiT1uZ-ZJlD1FBb1YbQwsQoMPH6_QUQhmmIP_d5nepc',
-    title: 'Japandi Fusion', desc: 'Zen aesthetics mixed with Scandinavian utility.' },
-  { img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBGM_70tluBEuE7OaBfAZDYJ17l_kAUM726AmmGNOLr78yslekW1RWQg8dwU3p8yFRHQYGujPU7mKZX0uirUUBHQBRS_gxy12hVOLyM2EaKIx6iR8Ca7iSxy-Nk9Rt9vyPA68xhV1Wegi3jz9JA2m_O8kOHlvm4dxn8XBJ7btBrgluXy6CKMjzC1JJG96P1eMf4RQhbN_p_1I89O2nk2Ysixz1KQy87HGYAIapXpV0Z4SGCuYK31IFDSgJFKKHPlYAftPdj8MYbg68',
-    title: 'Art Deco Revival', desc: 'Velvet fabrics, gold trims, and bold geometry.' },
+const STYLE_VARIATIONS = [
+  { name: 'Nordic Minimalist', description: 'Clean lines, lighter wood, and cool tones.', image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=800&q=100' },
+  { name: 'Industrial Loft', description: 'Exposed brick, metal accents, and raw textures.', image: 'https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=800&q=100' },
+  { name: 'Japandi Fusion', description: 'Zen aesthetics mixed with Scandinavian utility.', image: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=800&q=100' },
+  { name: 'Art Deco Revival', description: 'Velvet fabrics, gold trims, and bold geometry.', image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800&q=100' },
 ]
 
 export default function ResultView() {
   const location = useLocation()
   const navigate = useNavigate()
+
+  console.log('=== ResultView state:', location.state)
+
   const state = location.state || {}
   const originalImage = state.originalImage || FALLBACK_BEFORE
   const generatedImage = state.generatedImage || FALLBACK_AFTER
   const style = state.style || 'Mid-Century Modern'
+  const designTitle = state.designTitle || `${style} Sanctuary`
+  const processingTime = state.processingTime || '—'
+  const DEFAULT_SUMMARY = [
+    { icon: 'palette', title: 'Earth Tones & Teak', desc: 'Incorporated a warm palette of walnut, terracotta, and forest green accents.' },
+    { icon: 'chair', title: 'Curated Furniture', desc: 'Added iconic Eames-inspired seating and minimalist low-profile sideboards.' },
+    { icon: 'light_mode', title: 'Global Illumination', desc: 'Optimized natural light bounce for soft shadows.' },
+  ]
+  const styleSummary = state.styleSummary || DEFAULT_SUMMARY
+
+  // Guard: if navigated directly without state, go back to workspace
+  if (!location.state) {
+    console.warn('No state found on ResultView, redirecting to /workspace')
+    navigate('/workspace', { replace: true })
+    return null
+  }
 
   // Slider state
   const [sliderPos, setSliderPos] = useState(50)
   const sliderRef = useRef(null)
   const isDragging = useRef(false)
+
+  // Regeneration state
+  const [isRegenerating, setIsRegenerating] = useState(false)
+  const [currentGeneratedImage, setCurrentGeneratedImage] = useState(generatedImage)
+  const [currentTitle, setCurrentTitle] = useState(designTitle)
+  const [regenLoadingMsg, setRegenLoadingMsg] = useState('')
+
+  const handleVariationClick = async (variationStyle) => {
+    if (isRegenerating) return
+    const originalImg = location.state?.originalImage
+    if (!originalImg) { alert('Original image not found. Please go back to workspace.'); return }
+
+    setIsRegenerating(true)
+    setRegenLoadingMsg('Analyzing room for ' + variationStyle + ' style...')
+    try {
+      // originalImage is a base64 data URL — extract the raw base64
+      const base64 = originalImg.split(',')[1]
+
+      setRegenLoadingMsg('Gemini analyzing for ' + variationStyle + '...')
+      const analyzeRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/analyze-room`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, mimeType: 'image/jpeg', style: variationStyle }),
+      })
+      const analyzeData = await analyzeRes.json()
+
+      setRegenLoadingMsg('Generating ' + variationStyle + ' design...')
+      const generateRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/generate-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: analyzeData.prompt }),
+      })
+      const generateData = await generateRes.json()
+
+      setCurrentGeneratedImage(generateData.imageUrl)
+      setCurrentTitle(variationStyle + ' Sanctuary')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch (err) {
+      console.error('Regeneration error:', err)
+      alert('Regeneration failed: ' + err.message)
+    } finally {
+      setIsRegenerating(false)
+      setRegenLoadingMsg('')
+    }
+  }
 
   const handleMouseDown = () => { isDragging.current = true }
   const handleMouseUp = () => { isDragging.current = false }
@@ -52,7 +111,17 @@ export default function ResultView() {
   /** Download the generated image */
   const handleDownload = async () => {
     try {
-      const res = await fetch(generatedImage, { mode: 'cors' })
+      // Handle base64 data URLs directly (NVIDIA returns these)
+      if (currentGeneratedImage.startsWith('data:')) {
+        const a = document.createElement('a')
+        a.href = currentGeneratedImage
+        a.download = `stylenest-${style.replace(/\s+/g, '-')}-${Date.now()}.jpg`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        return
+      }
+      const res = await fetch(currentGeneratedImage, { mode: 'cors' })
       if (!res.ok) throw new Error('Network response was not ok')
       const blob = await res.blob()
       const url = window.URL.createObjectURL(blob)
@@ -66,20 +135,19 @@ export default function ResultView() {
       document.body.removeChild(a)
     } catch (err) {
       console.error('Download failed:', err)
-      // Fallback
-      window.open(generatedImage, '_blank')
+      window.open(currentGeneratedImage, '_blank')
     }
   }
 
   return (
     <div className="flex min-h-screen bg-surface">
       <Sidebar active="designs" />
-      <main className="ml-64 flex-1 min-h-screen p-12">
+      <main className="ml-64 flex-1 min-h-screen p-12 pt-24">
         {/* Header */}
-        <header className="mb-12 flex justify-between items-end">
+        <header className="mb-12 flex justify-between items-center">
           <div>
             <span className="text-primary font-bold tracking-widest text-xs uppercase mb-2 block">Generation Results</span>
-            <h2 className="text-4xl font-headline font-extrabold text-on-surface tracking-tight capitalize">{style} Sanctuary</h2>
+            <h2 className="text-4xl font-headline font-extrabold text-on-surface tracking-tight capitalize">{currentTitle}</h2>
           </div>
           <div className="flex gap-4">
             <button
@@ -113,10 +181,17 @@ export default function ResultView() {
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{
-                backgroundImage: `url('${generatedImage}')`,
+                backgroundImage: `url('${currentGeneratedImage}')`,
                 clipPath: `inset(0 0 0 ${sliderPos}%)`,
               }}
             />
+            {/* Regenerating overlay */}
+            {isRegenerating && (
+              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center z-20">
+                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mb-3" />
+                <p className="text-on-surface font-medium text-sm">{regenLoadingMsg}</p>
+              </div>
+            )}
             {/* Divider */}
             <div
               className="absolute inset-y-0 w-1 bg-white shadow-[0_0_15px_rgba(0,0,0,0.3)] z-10 pointer-events-none"
@@ -136,11 +211,7 @@ export default function ResultView() {
             <div className="bg-surface-container-low p-8 rounded-xl h-full flex flex-col">
               <h3 className="font-headline text-xl font-bold mb-6">Style Applied Summary</h3>
               <div className="space-y-6 flex-1">
-                {[
-                  { icon: 'palette', title: 'Earth Tones & Teak', desc: 'Incorporated a warm palette of walnut, terracotta, and forest green accents.' },
-                  { icon: 'chair', title: 'Curated Furniture', desc: 'Added iconic Eames-inspired seating and minimalist low-profile sideboards.' },
-                  { icon: 'light_mode', title: 'Global Illumination', desc: 'Optimized natural light bounce for soft shadows.' },
-                ].map((item, i) => (
+                {styleSummary.map((item, i) => (
                   <div key={i} className="flex items-start gap-4">
                     <div className="w-10 h-10 rounded-lg bg-primary-container/30 flex items-center justify-center text-primary">
                       <span className="material-symbols-outlined">{item.icon}</span>
@@ -155,7 +226,7 @@ export default function ResultView() {
               <div className="mt-8 pt-6 border-t border-outline-variant/15">
                 <div className="flex justify-between items-center text-sm font-medium">
                   <span className="text-on-surface-variant">Processing Time</span>
-                  <span className="text-on-surface">1.2s</span>
+                  <span className="text-on-surface">{processingTime}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm font-medium mt-2">
                   <span className="text-on-surface-variant">Model Version</span>
@@ -171,24 +242,29 @@ export default function ResultView() {
           <div className="flex justify-between items-center mb-8">
             <h3 className="font-headline text-2xl font-bold">Related Style Variations</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {SUGGESTIONS.map((s, idx) => (
-              <motion.div
-                key={idx}
-                className="group cursor-pointer"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
+          <div className="grid grid-cols-4 gap-6 mt-6">
+            {STYLE_VARIATIONS.map((variation, index) => (
+              <div
+                key={index}
+                className="cursor-pointer group relative"
+                onClick={() => handleVariationClick(variation.name)}
               >
-                <div className="relative aspect-square rounded-xl overflow-hidden mb-4 shadow-sm group-hover:shadow-xl transition-all duration-300">
-                  <img alt={s.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src={s.img} />
-                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="bg-white/90 backdrop-blur px-4 py-2 rounded-full text-xs font-bold text-on-surface">Apply Style</span>
-                  </div>
+                <div className="rounded-2xl overflow-hidden aspect-square mb-3 group-hover:scale-105 transition-transform duration-300 relative">
+                  <img
+                    src={variation.image}
+                    alt={variation.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=100' }}
+                  />
+                  {isRegenerating && (
+                    <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center z-10">
+                      <p className="text-white text-xs text-center px-2">{regenLoadingMsg}</p>
+                    </div>
+                  )}
                 </div>
-                <h4 className="font-bold text-on-surface">{s.title}</h4>
-                <p className="text-xs text-on-surface-variant">{s.desc}</p>
-              </motion.div>
+                <h4 className="font-semibold text-on-surface text-sm mb-1">{variation.name}</h4>
+                <p className="text-on-surface-variant text-xs">{variation.description}</p>
+              </div>
             ))}
           </div>
         </section>
