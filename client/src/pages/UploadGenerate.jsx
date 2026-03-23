@@ -81,6 +81,13 @@ export default function UploadGenerate() {
     setIsGenerating(true)
     setError('')
 
+    const fileToBase64 = (file) => new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result)
+      reader.onerror = error => reject(error)
+    })
+
     try {
       let imageUrl = publicOriginalUrl
       if (!imageUrl && isSupabaseConfigured()) {
@@ -92,12 +99,17 @@ export default function UploadGenerate() {
         }
       }
 
+      // If Supabase is not configured, send Base64 data URI so Replicate can still read the image
+      if (!imageUrl) {
+        imageUrl = await fileToBase64(uploadedFile)
+      }
+
       const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
       const res = await fetch(`${backendUrl}/generate`, { 
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          imageUrl: imageUrl || uploadedImage, // Fallback if no Supabase
+          image: imageUrl, // Base64 or Supabase URL
           style: selectedStyle
         })
       })
@@ -114,12 +126,12 @@ export default function UploadGenerate() {
 
       if (!res.ok) {
         setError(data.error || 'Generation failed with status ' + res.status)
-      } else if (data.generatedUrl) {
-        setGeneratedUrl(data.generatedUrl)
+      } else if (data.image) {
+        setGeneratedUrl(data.image)
         navigate('/result', {
           state: {
             originalImage: imageUrl || uploadedImage,
-            generatedImage: data.generatedUrl,
+            generatedImage: data.image,
             style: selectedStyle,
           },
         })
