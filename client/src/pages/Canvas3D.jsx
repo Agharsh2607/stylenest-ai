@@ -4,32 +4,79 @@ import { OrbitControls, Environment, ContactShadows, Html } from '@react-three/d
 import { useLocation, Link } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 
-import { useGLTF } from '@react-three/drei'
+// ─── 3D Furniture Components ─── //
 
-/** Generic GLB Model component */
-function GLBModel({ url, position = [0, 0, 0], scale = 1, color, onClick, onPointerDown, onPointerUp }) {
-  const { scene } = useGLTF(url)
-  // Clone scene to allow independent materials per instance
-  const cloned = scene.clone()
-
-  cloned.traverse((child) => {
-    if (child.isMesh && color) {
-      child.material = child.material.clone()
-      // Basic tinting, assumes material has color property
-      child.material.color.set(color)
-    }
-  })
-
+/** Simple sofa mesh */
+function Sofa({ position = [0, 0.4, 0], color = '#775a19', scale = 1, onClick, onPointerDown, onPointerUp }) {
+  const meshRef = useRef()
   return (
-    <primitive
-      object={cloned}
-      position={position}
-      scale={scale}
-      onClick={onClick}
-      onPointerDown={onPointerDown}
-      onPointerUp={onPointerUp}
-      castShadow
-    />
+    <group position={position} scale={scale} onClick={onClick} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+      {/* Base */}
+      <mesh ref={meshRef} position={[0, 0, 0]} castShadow>
+        <boxGeometry args={[2.5, 0.5, 1]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      {/* Backrest */}
+      <mesh position={[0, 0.5, -0.4]} castShadow>
+        <boxGeometry args={[2.5, 0.6, 0.2]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      {/* Left arm */}
+      <mesh position={[-1.15, 0.3, 0]} castShadow>
+        <boxGeometry args={[0.2, 0.4, 1]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      {/* Right arm */}
+      <mesh position={[1.15, 0.3, 0]} castShadow>
+        <boxGeometry args={[0.2, 0.4, 1]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
+/** Simple chair mesh */
+function Chair({ position = [2, 0.3, 1.5], color = '#456465', scale = 0.7, onClick, onPointerDown, onPointerUp }) {
+  return (
+    <group position={position} scale={scale} onClick={onClick} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+      {/* Seat */}
+      <mesh position={[0, 0.4, 0]} castShadow>
+        <boxGeometry args={[0.8, 0.1, 0.8]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      {/* Backrest */}
+      <mesh position={[0, 0.9, -0.35]} castShadow>
+        <boxGeometry args={[0.8, 0.9, 0.1]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      {/* Legs */}
+      {[[-0.3, 0.2, 0.3], [0.3, 0.2, 0.3], [-0.3, 0.2, -0.3], [0.3, 0.2, -0.3]].map((pos, i) => (
+        <mesh key={i} position={pos} castShadow>
+          <cylinderGeometry args={[0.03, 0.03, 0.4]} />
+          <meshStandardMaterial color="#1a1c1c" />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+/** Simple table mesh */
+function CoffeeTable({ position = [0, 0.2, 1.5], color = '#c5a059', scale = 1, onClick, onPointerDown, onPointerUp }) {
+  return (
+    <group position={position} scale={scale} onClick={onClick} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+      {/* Table top */}
+      <mesh position={[0, 0.35, 0]} castShadow>
+        <cylinderGeometry args={[0.6, 0.6, 0.06, 32]} />
+        <meshStandardMaterial color={color} roughness={0.4} />
+      </mesh>
+      {/* Legs */}
+      {[[0.3, 0.17, 0.3], [-0.3, 0.17, 0.3], [0.3, 0.17, -0.3], [-0.3, 0.17, -0.3]].map((pos, i) => (
+        <mesh key={i} position={pos} castShadow>
+          <cylinderGeometry args={[0.03, 0.03, 0.35]} />
+          <meshStandardMaterial color="#2f3131" />
+        </mesh>
+      ))}
+    </group>
   )
 }
 
@@ -134,11 +181,10 @@ export default function Canvas3D() {
       onPointerDown: (e) => handlePointerDown(e, item.id),
       onPointerUp: handlePointerUp,
     }
-    // Expected to load from public/models/
     switch (item.type) {
-      case 'sofa': return <GLBModel url="/models/sofa.glb" {...props} />
-      case 'chair': return <GLBModel url="/models/chair.glb" {...props} />
-      case 'table': return <GLBModel url="/models/table.glb" {...props} />
+      case 'sofa': return <Sofa {...props} />
+      case 'chair': return <Chair {...props} />
+      case 'table': return <CoffeeTable {...props} />
       default: return null
     }
   }

@@ -4,9 +4,9 @@ import { useAuth } from '../hooks/useAuth'
 
 // Image URLs from the provided HTML mockups
 const HERO_BG = 'https://lh3.googleusercontent.com/aida-public/AB6AXuBau1AIdhT11oGK38mI71ZJItf9CW-66Vf4izBu5EFTLIOhEATPyS4gVhn-g39IsymG9u6gr13AT5GUqs4eIxDqPknWxlzkfVE5H8sgFCjz9TtRvfm3unrqD8lw68M8Ldz3hoLGQYgn2bJJyyTNNO88STn-ElzUg2aO4X2vW4tOReqxVwfS5aHPIrvlXBd-B59rIgrJzWjdCgGzlt1UUkX4CJk-IsGwInWDM8lcZosEn6fXCpOkZL3G9Z-f0Eg6b92lYs1hw-MKpEg'
-const GALLERY_1 = 'https://lh3.googleusercontent.com/aida-public/AB6AXuCrQmhp46oU0auD4_UF92velT4eplTt9CJ4uI9R4nJEH8iunZaNl6iUTwBTUODd-El36J1ySA5eZ6_fMYxgvLUkwmJIXYlapMTN_snkjnbAwtbE6VSMmxFUC3g8R6jxeNYAQzFrZow9s8EUEGaWDhCBk0BItbqOpl4f7017DHF1L84hqpy9y4m6BEELyhrDkI8JyZ7UN0w9hJ7CgvPHozi_FhZni8v0Uv8_6z3qJlRh4v4l6HZ5E5cviT5Wm3_Mrrw8hgLqBQRNGmI'
-const GALLERY_2 = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAAPDsLeE1ZjnrVFjypEZA5eea8UejYjabVsVzrTr-mCE1lGIou6J86kW0AjibarnG0IjojRv2e32SXGz7gxKq3j84QgTrpB9McucpLZ44YEk7R4wgMEHT-D3zfFI7FoNfuw45i34854qSIxIz6-JH-NBXbfdS2CZEN2BKBCxs7kGyQPPQrr8DuyDBi8FvoPaep4PqSQdxuuAwhhcW_-GojaVa120wkxZJnX0QDdYWdIFOrMkfk1CBZIp71GjRNCXEzQtJzHtJfvF4'
-const GALLERY_3 = 'https://lh3.googleusercontent.com/aida-public/AB6AXuATL1o2mwLnwTOXFYmg_z3hIi6xG7G1NXKk0xN_2qt2_F2fGogLhfVO5QjWKPUF8SwnQe2MooFHjMhm5xnQubwmgfPCkyWGhvVmkO2h7djSvhNmQQGtZXQv-A6iljm5hGGlUyQ10iOMe1-PNzPKJjUymrput4qbr-YXFlOfh-23Nm6dS3Xwp2U6mDtk5rEql9brooBO8vmdlvZtWruy8hDhKdpMlK8Ga_0aUD33BPtmJQrddq7q2iqk6q_MCPp4EXIPinvtH6aZzwM'
+const GALLERY_1 = 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800'
+const GALLERY_2 = 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=800'
+const GALLERY_3 = 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800'
 const STEP2_IMG = 'https://lh3.googleusercontent.com/aida-public/AB6AXuA9bZDK4JatNaefVw2LZrQ3wpnhx9dg5l7HomJnTsKnwH3g3tq3hW66YDO3Q2g5_xJRET701Jm4nq0lczF0Yd8BgujuHHzS8qhNGKMFolWZ6FS90yY9cPJn2EwPK8bovm9l049AGGAiNKojLTKsRdvbd58LgVqxLcnnPvFdJPXIUekxR37mkJfT8Ixqqobwuww1HOZnaOYAzlSiYOSsIjZqIhoRMspUEmgU8Yu2ij9D8MKJias_Jc_hyolEV9KQO4A-mEhRf0G_8Pc'
 
 const fadeUp = {
@@ -140,17 +140,21 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             {[
-              { img: GALLERY_1, title: 'Nordic Sanctuary', sub: 'Living Room • Stockholm' },
-              { img: GALLERY_2, title: 'Industrial Loft', sub: 'Bedroom • New York' },
-              { img: GALLERY_3, title: 'Zen Kitchen', sub: 'Dining • Tokyo' },
+              { img: GALLERY_1, title: 'Modern Living Room', sub: 'Living Room • Contemporary' },
+              { img: GALLERY_2, title: 'Minimal Bedroom', sub: 'Bedroom • Scandinavian' },
+              { img: GALLERY_3, title: 'Luxury Kitchen', sub: 'Kitchen • Modern' },
             ].map((item, idx) => (
               <motion.div key={idx} className="group" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={idx} variants={fadeUp}>
-                <div className="relative rounded-xl overflow-hidden aspect-[4/5] mb-6 shadow-xl">
-                  <img alt={item.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-100" src={item.img} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="absolute bottom-6 left-6 text-white opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all">
-                    <p className="font-headline font-bold text-lg">{item.title}</p>
-                    <p className="text-sm text-white/80">{item.sub}</p>
+                <div className="relative rounded-2xl overflow-hidden aspect-[4/3] shadow-xl">
+                  <img
+                    alt={item.title}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    src={item.img}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute bottom-5 left-5 text-white">
+                    <p className="font-headline font-bold text-lg leading-tight">{item.title}</p>
+                    <p className="text-sm text-white/75 mt-0.5">{item.sub}</p>
                   </div>
                 </div>
               </motion.div>

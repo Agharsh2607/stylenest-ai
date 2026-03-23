@@ -9,7 +9,7 @@ export default function Navbar() {
     <header className="fixed top-0 z-50 w-full bg-white/70 backdrop-blur-xl shadow-sm shadow-zinc-200/50">
       <nav className="flex justify-between items-center w-full px-8 py-4 max-w-screen-2xl mx-auto">
         <Link to="/" className="text-xl font-bold tracking-tighter text-zinc-900 font-headline">StyleNest AI</Link>
-        <div className="hidden md:flex items-center gap-8 font-headline text-sm font-medium tracking-tight">
+        <div className="hidden md:flex items-center gap-8 font-headline text-sm font-bold tracking-tight">
           <Link
             className={`transition-colors ${location.pathname === '/' ? 'text-amber-600 font-bold border-b-2 border-amber-500 pb-1' : 'text-zinc-600 hover:text-zinc-900'}`}
             to="/"
