@@ -1,0 +1,42 @@
+﻿
+C:\Users\kalya\Downloads\stylenest-ai\client\src\components\Sidebar.jsx
+  26:10  error  'NAV_ITEMS' is not defined  no-undef
+
+C:\Users\kalya\Downloads\stylenest-ai\client\src\hooks\useAuth.jsx
+   19:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  17 |       // Demo mode ΓÇö no Supabase configured
+  18 |       console.warn('ΓÜá∩╕Å Supabase not configured ΓÇö running in demo mode. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.')
+> 19 |       setLoading(false)
+     |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  20 |       return
+  21 |     }
+  22 |  react-hooks/set-state-in-effect
+  106:17  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             react-refresh/only-export-components
+
+C:\Users\kalya\Downloads\stylenest-ai\client\src\pages\AuthPage.jsx
+  3:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\kalya\Downloads\stylenest-ai\client\src\pages\Canvas3D.jsx
+    2:18  error  'useFrame' is defined but never used. Allowed unused vars must match /^[A-Z_]/u          no-unused-vars
+  119:9   error  'bgImage' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\kalya\Downloads\stylenest-ai\client\src\pages\LandingPage.jsx
+  2:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\kalya\Downloads\stylenest-ai\client\src\pages\ResultView.jsx
+   3:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u             no-unused-vars
+  23:9   error  'navigate' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\kalya\Downloads\stylenest-ai\client\src\pages\UploadGenerate.jsx
+   3:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  90:14  error  'err' is defined but never used                                                no-unused-vars
+
+Γ£û 11 problems (11 errors, 0 warnings)
+

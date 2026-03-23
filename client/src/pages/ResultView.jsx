@@ -52,15 +52,21 @@ export default function ResultView() {
   /** Download the generated image */
   const handleDownload = async () => {
     try {
-      const res = await fetch(generatedImage)
+      const res = await fetch(generatedImage, { mode: 'cors' })
+      if (!res.ok) throw new Error('Network response was not ok')
       const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
+      const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
+      a.style.display = 'none'
       a.href = url
-      a.download = `stylenest-${Date.now()}.png`
+      a.download = `stylenest-${style.replace(/\s+/g, '-')}-${Date.now()}.png`
+      document.body.appendChild(a)
       a.click()
-      URL.revokeObjectURL(url)
-    } catch {
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (err) {
+      console.error('Download failed:', err)
+      // Fallback
       window.open(generatedImage, '_blank')
     }
   }

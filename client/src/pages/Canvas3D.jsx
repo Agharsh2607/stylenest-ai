@@ -4,99 +4,52 @@ import { OrbitControls, Environment, ContactShadows, Html } from '@react-three/d
 import { useLocation, Link } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 
-// ─── 3D Furniture Components ─── //
+import { useGLTF } from '@react-three/drei'
 
-/** Simple sofa mesh */
-function Sofa({ position = [0, 0.4, 0], color = '#775a19', scale = 1, onClick }) {
-  const meshRef = useRef()
-  return (
-    <group position={position} scale={scale} onClick={onClick}>
-      {/* Base */}
-      <mesh ref={meshRef} position={[0, 0, 0]} castShadow>
-        <boxGeometry args={[2.5, 0.5, 1]} />
-        <meshStandardMaterial color={color} roughness={0.7} />
-      </mesh>
-      {/* Backrest */}
-      <mesh position={[0, 0.5, -0.4]} castShadow>
-        <boxGeometry args={[2.5, 0.6, 0.2]} />
-        <meshStandardMaterial color={color} roughness={0.7} />
-      </mesh>
-      {/* Left arm */}
-      <mesh position={[-1.15, 0.3, 0]} castShadow>
-        <boxGeometry args={[0.2, 0.4, 1]} />
-        <meshStandardMaterial color={color} roughness={0.7} />
-      </mesh>
-      {/* Right arm */}
-      <mesh position={[1.15, 0.3, 0]} castShadow>
-        <boxGeometry args={[0.2, 0.4, 1]} />
-        <meshStandardMaterial color={color} roughness={0.7} />
-      </mesh>
-    </group>
-  )
-}
+/** Generic GLB Model component */
+function GLBModel({ url, position = [0, 0, 0], scale = 1, color, onClick, onPointerDown, onPointerUp }) {
+  const { scene } = useGLTF(url)
+  // Clone scene to allow independent materials per instance
+  const cloned = scene.clone()
 
-/** Simple chair mesh */
-function Chair({ position = [2, 0.3, 1.5], color = '#456465', scale = 0.7, onClick }) {
-  return (
-    <group position={position} scale={scale} onClick={onClick}>
-      {/* Seat */}
-      <mesh position={[0, 0.4, 0]} castShadow>
-        <boxGeometry args={[0.8, 0.1, 0.8]} />
-        <meshStandardMaterial color={color} roughness={0.6} />
-      </mesh>
-      {/* Backrest */}
-      <mesh position={[0, 0.9, -0.35]} castShadow>
-        <boxGeometry args={[0.8, 0.9, 0.1]} />
-        <meshStandardMaterial color={color} roughness={0.6} />
-      </mesh>
-      {/* Legs */}
-      {[[-0.3, 0.2, 0.3], [0.3, 0.2, 0.3], [-0.3, 0.2, -0.3], [0.3, 0.2, -0.3]].map((pos, i) => (
-        <mesh key={i} position={pos} castShadow>
-          <cylinderGeometry args={[0.03, 0.03, 0.4]} />
-          <meshStandardMaterial color="#1a1c1c" />
-        </mesh>
-      ))}
-    </group>
-  )
-}
+  cloned.traverse((child) => {
+    if (child.isMesh && color) {
+      child.material = child.material.clone()
+      // Basic tinting, assumes material has color property
+      child.material.color.set(color)
+    }
+  })
 
-/** Simple table mesh */
-function CoffeeTable({ position = [0, 0.2, 1.5], color = '#c5a059', scale = 1, onClick }) {
   return (
-    <group position={position} scale={scale} onClick={onClick}>
-      {/* Table top */}
-      <mesh position={[0, 0.35, 0]} castShadow>
-        <cylinderGeometry args={[0.6, 0.6, 0.06, 32]} />
-        <meshStandardMaterial color={color} roughness={0.4} />
-      </mesh>
-      {/* Legs */}
-      {[[0.3, 0.17, 0.3], [-0.3, 0.17, 0.3], [0.3, 0.17, -0.3], [-0.3, 0.17, -0.3]].map((pos, i) => (
-        <mesh key={i} position={pos} castShadow>
-          <cylinderGeometry args={[0.03, 0.03, 0.35]} />
-          <meshStandardMaterial color="#2f3131" />
-        </mesh>
-      ))}
-    </group>
+    <primitive
+      object={cloned}
+      position={position}
+      scale={scale}
+      onClick={onClick}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      castShadow
+    />
   )
 }
 
 /** Room — floor + walls */
-function Room({ wallColor = '#f1f1f1', floorColor = '#e2e2e2' }) {
+function Room({ wallColor = '#f1f1f1', floorColor = '#e2e2e2', onPointerMove, onPointerUp }) {
   return (
     <group>
       {/* Floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, 0, 0]}>
-        <planeGeometry args={[10, 10]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, 0, 0]} onPointerMove={onPointerMove} onPointerUp={onPointerUp}>
+        <planeGeometry args={[20, 20]} />
         <meshStandardMaterial color={floorColor} roughness={0.8} />
       </mesh>
       {/* Back wall */}
-      <mesh position={[0, 2.5, -5]} receiveShadow>
-        <planeGeometry args={[10, 5]} />
+      <mesh position={[0, 5, -10]} receiveShadow>
+        <planeGeometry args={[20, 10]} />
         <meshStandardMaterial color={wallColor} roughness={0.9} />
       </mesh>
       {/* Left wall */}
-      <mesh position={[-5, 2.5, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
-        <planeGeometry args={[10, 5]} />
+      <mesh position={[-10, 5, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
+        <planeGeometry args={[20, 10]} />
         <meshStandardMaterial color={wallColor} roughness={0.9} />
       </mesh>
     </group>
@@ -127,6 +80,8 @@ export default function Canvas3D() {
   const [wallColor, setWallColor] = useState('#f1f1f1')
   const [floorColor, setFloorColor] = useState('#e2e2e2')
 
+  const [draggingId, setDraggingId] = useState(null)
+
   const selected = furniture.find((f) => f.id === selectedId)
   let nextId = useRef(4)
 
@@ -146,6 +101,29 @@ export default function Canvas3D() {
     setFurniture((prev) => prev.map((f) => (f.id === id ? { ...f, color } : f)))
   }
 
+  const updatePosition = (id, newPos) => {
+    setFurniture((prev) => prev.map((f) => (f.id === id ? { ...f, position: newPos } : f)))
+  }
+
+  const handlePointerDown = (e, id) => {
+    e.stopPropagation()
+    setSelectedId(id)
+    setDraggingId(id)
+    document.body.style.cursor = 'grabbing'
+  }
+
+  const handlePointerUp = () => {
+    setDraggingId(null)
+    document.body.style.cursor = 'auto'
+  }
+
+  const handleFloorMove = (e) => {
+    if (draggingId) {
+      e.stopPropagation()
+      updatePosition(draggingId, [e.point.x, 0, e.point.z])
+    }
+  }
+
   const renderFurniture = (item) => {
     const props = {
       key: item.id,
@@ -153,11 +131,14 @@ export default function Canvas3D() {
       color: item.color,
       scale: item.scale,
       onClick: (e) => { e.stopPropagation(); setSelectedId(item.id) },
+      onPointerDown: (e) => handlePointerDown(e, item.id),
+      onPointerUp: handlePointerUp,
     }
+    // Expected to load from public/models/
     switch (item.type) {
-      case 'sofa': return <Sofa {...props} />
-      case 'chair': return <Chair {...props} />
-      case 'table': return <CoffeeTable {...props} />
+      case 'sofa': return <GLBModel url="/models/sofa.glb" {...props} />
+      case 'chair': return <GLBModel url="/models/chair.glb" {...props} />
+      case 'table': return <GLBModel url="/models/table.glb" {...props} />
       default: return null
     }
   }
@@ -185,20 +166,19 @@ export default function Canvas3D() {
             </Link>
           </div>
 
-          {/* Three.js Canvas */}
           <Canvas
             shadows
-            camera={{ position: [5, 5, 5], fov: 50 }}
+            camera={{ position: [6, 6, 8], fov: 45 }}
             style={{ width: '100%', height: '100%' }}
             onClick={() => setSelectedId(null)}
           >
-            <Suspense fallback={<Html center><div className="text-primary font-bold">Loading 3D...</div></Html>}>
-              <ambientLight intensity={0.5} />
-              <directionalLight position={[5, 8, 3]} intensity={1.2} castShadow shadow-mapSize={[1024, 1024]} />
-              <Room wallColor={wallColor} floorColor={floorColor} />
+            <Suspense fallback={<Html center><div className="text-primary font-bold">Loading 3D Models...</div></Html>}>
+              <ambientLight intensity={0.6} />
+              <directionalLight position={[10, 15, 10]} intensity={1.5} castShadow shadow-mapSize={[2048, 2048]} />
+              <Room wallColor={wallColor} floorColor={floorColor} onPointerMove={handleFloorMove} onPointerUp={handlePointerUp} />
               {furniture.map(renderFurniture)}
-              <ContactShadows position={[0, 0.01, 0]} opacity={0.4} scale={10} blur={2} />
-              <OrbitControls makeDefault minPolarAngle={0.2} maxPolarAngle={Math.PI / 2.2} />
+              <ContactShadows position={[0, 0.01, 0]} opacity={0.5} scale={20} blur={2.5} far={4} />
+              <OrbitControls makeDefault minPolarAngle={0.1} maxPolarAngle={Math.PI / 2.1} enabled={!draggingId} />
               <Environment preset="apartment" />
             </Suspense>
           </Canvas>

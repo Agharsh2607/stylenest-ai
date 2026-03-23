@@ -2,6 +2,8 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import Sidebar from '../components/Sidebar'
+import { useAuth } from '../hooks/useAuth'
+import { saveDesign, uploadImage, uploadImageFromUrl, isSupabaseConfigured } from '../services/supabase'
 
 // Style images from the provided HTML mockups
 const STYLE_IMAGES = {
@@ -27,20 +29,33 @@ export default function UploadGenerate() {
   const [previewUrl, setPreviewUrl] = useState(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedUrl, setGeneratedUrl] = useState(null)
+  const [publicOriginalUrl, setPublicOriginalUrl] = useState(null)
   const [aiSuggestions, setAiSuggestions] = useState(null)
   const [error, setError] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const { user } = useAuth()
   const fileInputRef = useRef(null)
   const navigate = useNavigate()
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
-    if (file) {
-      setUploadedFile(file)
-      setUploadedImage(URL.createObjectURL(file))
-      setPreviewUrl(URL.createObjectURL(file))
-      setGeneratedUrl(null)
-      setError('')
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload a valid image file.')
+      return;
     }
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File size must be under 5MB.')
+      return;
+    }
+
+    setUploadedFile(file)
+    setUploadedImage(URL.createObjectURL(file))
+    setPreviewUrl(URL.createObjectURL(file))
+    setGeneratedUrl(null)
+    setPublicOriginalUrl(null)
+    setError('')
   }
 
   /** Call backend to get AI style suggestions */
@@ -67,30 +82,82 @@ export default function UploadGenerate() {
     setError('')
 
     try {
-      const formData = new FormData()
-      formData.append('image', uploadedFile)
-      formData.append('style', selectedStyle)
+      let imageUrl = publicOriginalUrl
+      if (!imageUrl && isSupabaseConfigured()) {
+        try {
+          imageUrl = await uploadImage(uploadedFile, 'uploads')
+          setPublicOriginalUrl(imageUrl)
+        } catch (imgErr) {
+          throw new Error('Failed to upload image to Supabase: ' + imgErr.message)
+        }
+      }
 
-      const res = await fetch('/api/generate', { method: 'POST', body: formData })
-      const data = await res.json()
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+      const res = await fetch(`${backendUrl}/generate`, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: imageUrl || uploadedImage, // Fallback if no Supabase
+          style: selectedStyle
+        })
+      })
+      
+      const text = await res.text()
+      let data
+      try {
+        data = JSON.parse(text)
+      } catch (err) {
+        console.error('Invalid JSON received from server:', text)
+        setError('Server returned an invalid response. Ensure backend is running.')
+        return
+      }
 
-      if (data.error) {
-        setError(data.error)
+      if (!res.ok) {
+        setError(data.error || 'Generation failed with status ' + res.status)
       } else if (data.generatedUrl) {
         setGeneratedUrl(data.generatedUrl)
-        // Navigate to result view with data
         navigate('/result', {
           state: {
-            originalImage: uploadedImage,
+            originalImage: imageUrl || uploadedImage,
             generatedImage: data.generatedUrl,
             style: selectedStyle,
           },
         })
       }
     } catch (err) {
-      setError('Generation failed. Make sure the backend server is running.')
+      setError('Generation failed. ' + err.message)
     } finally {
       setIsGenerating(false)
+    }
+  }
+
+  const handleSave = async () => {
+    if (!generatedUrl || !uploadedFile) {
+      setError('Please generate a design first before saving.')
+      return
+    }
+    if (!user || !isSupabaseConfigured()) {
+      setError('You must be logged in with a configured database to save designs.')
+      return
+    }
+    
+    setIsSaving(true)
+    setError('')
+    try {
+      const originalUrl = publicOriginalUrl || await uploadImage(uploadedFile, 'uploads')
+      const genUrl = await uploadImageFromUrl(generatedUrl, 'generated')
+      await saveDesign({
+        userId: user.id,
+        originalImage: originalUrl,
+        generatedImage: genUrl,
+        style: selectedStyle
+      })
+      navigate('/dashboard')
+    } catch (err) {
+      console.error('Save error:', err)
+      setError('Failed to save design: ' + err.message)
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -237,8 +304,12 @@ export default function UploadGenerate() {
                 <span className="material-symbols-outlined">magic_button</span>
                 {isGenerating ? 'Generating...' : 'Generate Design'}
               </button>
-              <button className="w-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface py-3 rounded-xl font-headline font-bold text-sm transition-colors">
-                Save to Workspace
+              <button 
+                onClick={handleSave}
+                disabled={isSaving || !generatedUrl}
+                className="w-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface py-3 rounded-xl font-headline font-bold text-sm transition-colors disabled:opacity-50"
+              >
+                {isSaving ? 'Saving...' : 'Save to Workspace'}
               </button>
             </div>
           </div>

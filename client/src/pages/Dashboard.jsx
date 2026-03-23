@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../hooks/useAuth'
 import Sidebar from '../components/Sidebar'
+import { fetchUserDesigns, isSupabaseConfigured, deleteDesign } from '../services/supabase'
 
 const PLACEHOLDER_IMAGES = {
   before: [
@@ -29,8 +30,54 @@ const DEMO_DESIGNS = [
 export default function Dashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  // In a real app, you'd fetch designs from Supabase. Using demo data for showcase.
-  const [designs] = useState(DEMO_DESIGNS)
+  const [designs, setDesigns] = useState(DEMO_DESIGNS)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadDesigns = async () => {
+      if (!user || !isSupabaseConfigured()) {
+        setDesigns(DEMO_DESIGNS)
+        setLoading(false)
+        return
+      }
+      try {
+        const data = await fetchUserDesigns(user.id)
+        if (isMounted) {
+          if (data && data.length > 0) {
+            const formatted = data.map(d => ({
+               id: d.id,
+               title: 'My Project',
+               style: d.style || 'Modern',
+               date: new Date(d.created_at).toLocaleDateString(),
+               originalUrl: d.original_image,
+               generatedUrl: d.generated_image
+            }))
+            setDesigns(formatted)
+          } else {
+            setDesigns([])
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load designs', err)
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+    loadDesigns()
+    return () => { isMounted = false }
+  }, [user])
+
+  const handleDelete = async (id) => {
+    try {
+      if (isSupabaseConfigured()) {
+        await deleteDesign(id)
+      }
+      setDesigns(prev => prev.filter(d => d.id !== id))
+    } catch (err) {
+      console.error('Failed to delete design', err)
+    }
+  }
 
   return (
     <div className="flex min-h-screen bg-surface">
@@ -95,11 +142,11 @@ export default function Dashboard() {
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <div className="absolute inset-0 flex">
                     <div className="w-1/2 relative overflow-hidden border-r-2 border-white/20">
-                      <img className="w-full h-full object-cover" alt="Before" src={PLACEHOLDER_IMAGES.before[design.beforeIdx]} />
+                      <img className="w-full h-full object-cover" alt="Before" src={design.originalUrl || PLACEHOLDER_IMAGES.before[design.beforeIdx || 0]} />
                       <div className="absolute top-2 left-2 bg-black/40 backdrop-blur-md px-2 py-1 rounded text-[10px] text-white font-bold">BEFORE</div>
                     </div>
                     <div className="w-1/2 relative overflow-hidden">
-                      <img className="w-full h-full object-cover" alt="After" src={PLACEHOLDER_IMAGES.after[design.afterIdx]} />
+                      <img className="w-full h-full object-cover" alt="After" src={design.generatedUrl || PLACEHOLDER_IMAGES.after[design.afterIdx || 0]} />
                       <div className="absolute top-2 right-2 bg-primary/80 backdrop-blur-md px-2 py-1 rounded text-[10px] text-white font-bold">AFTER</div>
                     </div>
                   </div>
@@ -131,7 +178,7 @@ export default function Dashboard() {
                         <span className="material-symbols-outlined text-sm">share</span>
                       </button>
                     </div>
-                    <button className="p-2 text-secondary hover:text-error transition-colors">
+                    <button onClick={() => handleDelete(design.id)} className="p-2 text-secondary hover:text-error transition-colors">
                       <span className="material-symbols-outlined text-sm">delete</span>
                     </button>
                   </div>

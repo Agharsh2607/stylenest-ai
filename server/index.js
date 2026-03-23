@@ -22,7 +22,7 @@ app.use(express.json())
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } })
 
 // Routes
-app.use('/generate', upload.single('image'), generateRoute)
+app.use('/generate', generateRoute)
 app.use('/styles', upload.single('image'), stylesRoute)
 
 // Health check

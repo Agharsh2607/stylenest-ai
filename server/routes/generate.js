@@ -9,11 +9,10 @@ const Replicate = require('replicate')
 
 router.post('/', async (req, res) => {
   try {
-    const { style } = req.body
-    const imageFile = req.file
+    const { style, imageUrl } = req.body
 
-    if (!imageFile) {
-      return res.status(400).json({ error: 'No image file provided' })
+    if (!imageUrl) {
+      return res.status(400).json({ error: 'No image URL provided' })
     }
 
     // Check for API token
@@ -29,9 +28,6 @@ router.post('/', async (req, res) => {
 
     const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
 
-    // Convert image buffer to base64 data URI
-    const base64Image = `data:${imageFile.mimetype};base64,${imageFile.buffer.toString('base64')}`
-
     // Style prompt mapping
     const stylePrompts = {
       modern: 'modern contemporary interior design, clean lines, minimalist furniture, neutral tones, high-end finishes',
@@ -40,19 +36,20 @@ router.post('/', async (req, res) => {
       japandi: 'Japandi style interior, Japanese minimalism meets Scandinavian design, natural materials, wabi-sabi, warm wood tones',
     }
 
-    const prompt = stylePrompts[style] || stylePrompts.modern
+    const promptStr = prompt = stylePrompts[style] || stylePrompts.modern
+    const finalPrompt = `Interior design of the same room in ${style} style. Keep exact structure. Only add furniture and decor. ${promptStr}, photorealistic, 8k quality, interior photography`
 
     // Call Replicate API — using Stable Diffusion with ControlNet depth
     const output = await replicate.run(
       'jagilley/controlnet-depth2img:922c7bb67b87ec32cbc2fd11b1d5f94f0ba4f5571c4571c4d5f93e635e16413f',
       {
         input: {
-          image: base64Image,
-          prompt: `${prompt}, photorealistic, 8k quality, interior photography, architectural digest`,
-          negative_prompt: 'low quality, blurry, distorted, cartoon, anime, sketch, drawing',
+          image: imageUrl,
+          prompt: finalPrompt,
+          negative_prompt: 'extra windows, extra doors, new walls, structural changes, distorted layout, unrealistic architecture, low quality, blurry, cartoon, anime, sketch, drawing',
           num_inference_steps: 30,
-          guidance_scale: 9,
-          strength: 0.8,
+          guidance_scale: 10,
+          strength: 1.0,
         },
       }
     )
@@ -65,8 +62,8 @@ router.post('/', async (req, res) => {
       style: style || 'modern',
     })
   } catch (error) {
-    console.error('Generation error:', error)
-    res.status(500).json({ error: 'Image generation failed: ' + error.message })
+    console.error('Generation Error Stack:', error)
+    res.status(500).json({ error: 'AI generation failed: ' + error.message })
   }
 })
 
