@@ -46,7 +46,7 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="bg-surface font-body text-on-surface min-h-screen flex items-center justify-center overflow-hidden">
+    <div className="bg-surface font-body text-on-surface min-h-screen flex items-center justify-center overflow-hidden pt-[72px]">
       {/* Background */}
       <div className="fixed inset-0 z-0">
         <img className="w-full h-full object-cover" alt="Luxury interior" src={AUTH_BG} />

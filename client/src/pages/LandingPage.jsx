@@ -19,29 +19,7 @@ export default function LandingPage() {
 
   return (
     <div className="bg-surface text-on-surface font-body antialiased selection:bg-primary/20 selection:text-primary">
-      {/* ─── Navigation ─── */}
-      <header className="fixed top-0 z-50 w-full bg-white/70 backdrop-blur-xl shadow-sm shadow-zinc-200/50">
-        <nav className="flex justify-between items-center w-full px-8 py-4 max-w-screen-2xl mx-auto">
-          <div className="text-xl font-bold tracking-tighter text-zinc-900 font-headline">StyleNest AI</div>
-          <div className="hidden md:flex items-center gap-8 font-headline text-sm font-medium tracking-tight">
-            <a className="text-amber-600 font-bold border-b-2 border-amber-500 pb-1" href="#hero">Home</a>
-            <Link className="text-zinc-600 hover:text-zinc-900 transition-colors" to={user ? '/workspace' : '/auth'}>Workspace</Link>
-            <Link className="text-zinc-600 hover:text-zinc-900 transition-colors" to={user ? '/dashboard' : '/auth'}>Dashboard</Link>
-            <a className="text-zinc-600 hover:text-zinc-900 transition-colors" href="#pricing">Pricing</a>
-          </div>
-          <div className="flex items-center gap-4">
-            {user ? (
-              <Link to="/dashboard" className="bg-primary-gradient text-white px-6 py-2.5 rounded-xl font-headline font-bold text-sm transition-transform active:scale-95 shadow-lg shadow-primary/20">
-                Dashboard
-              </Link>
-            ) : (
-              <Link to="/auth" className="bg-primary-gradient text-white px-6 py-2.5 rounded-xl font-headline font-bold text-sm transition-transform active:scale-95 shadow-lg shadow-primary/20">
-                Start Designing
-              </Link>
-            )}
-          </div>
-        </nav>
-      </header>
+      {/* Navbar is now rendered at the App level */}
 
       {/* ─── Hero Section ─── */}
       <section id="hero" className="relative min-h-screen flex items-center pt-20 overflow-hidden">
