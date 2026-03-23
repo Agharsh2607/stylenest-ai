@@ -1,18 +1,22 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from './hooks/useAuth'
+import { isSupabaseConfigured } from './services/supabase'
 import Navbar from './components/Navbar'
 import LandingPage from './pages/LandingPage'
 import AuthPage from './pages/AuthPage'
-import Dashboard from './pages/Dashboard'
 import UploadGenerate from './pages/UploadGenerate'
 import ResultView from './pages/ResultView'
 import Canvas3D from './pages/Canvas3D'
+import Pricing from './pages/Pricing'
 
-/** Protected route wrapper — redirects to /auth if not logged in */
+/** Protected route wrapper — redirects to /auth if not logged in.
+ *  In demo mode (no Supabase configured), always allows access. */
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
+  const demoMode = !isSupabaseConfigured()
 
-  if (loading) {
+  if (loading && !demoMode) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface">
         <div className="text-center">
@@ -23,51 +27,59 @@ function ProtectedRoute({ children }) {
     )
   }
 
-  if (!user) return <Navigate to="/auth" replace />
+  if (!demoMode && !user) return <Navigate to="/auth" replace />
   return children
 }
 
+const PageWrapper = ({ children }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.3 }}
+  >
+    {children}
+  </motion.div>
+)
+
 export default function App() {
+  const location = useLocation()
+
   return (
     <>
       <Navbar />
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/workspace"
-          element={
-            <ProtectedRoute>
-              <UploadGenerate />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/result/:id?"
-          element={
-            <ProtectedRoute>
-              <ResultView />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/canvas3d"
-          element={
-            <ProtectedRoute>
-              <Canvas3D />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<PageWrapper><LandingPage /></PageWrapper>} />
+          <Route path="/auth" element={<PageWrapper><AuthPage /></PageWrapper>} />
+          <Route path="/pricing" element={<PageWrapper><Pricing /></PageWrapper>} />
+          <Route
+            path="/workspace"
+            element={
+              <ProtectedRoute>
+                <PageWrapper><UploadGenerate /></PageWrapper>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/result/:id?"
+            element={
+              <ProtectedRoute>
+                <PageWrapper><ResultView /></PageWrapper>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/canvas3d"
+            element={
+              <ProtectedRoute>
+                <PageWrapper><Canvas3D /></PageWrapper>
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AnimatePresence>
     </>
   )
 }

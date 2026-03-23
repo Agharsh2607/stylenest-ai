@@ -2,16 +2,34 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../hooks/useAuth'
 
-// Image URLs from the provided HTML mockups
-const HERO_BG = 'https://lh3.googleusercontent.com/aida-public/AB6AXuBau1AIdhT11oGK38mI71ZJItf9CW-66Vf4izBu5EFTLIOhEATPyS4gVhn-g39IsymG9u6gr13AT5GUqs4eIxDqPknWxlzkfVE5H8sgFCjz9TtRvfm3unrqD8lw68M8Ldz3hoLGQYgn2bJJyyTNNO88STn-ElzUg2aO4X2vW4tOReqxVwfS5aHPIrvlXBd-B59rIgrJzWjdCgGzlt1UUkX4CJk-IsGwInWDM8lcZosEn6fXCpOkZL3G9Z-f0Eg6b92lYs1hw-MKpEg'
+const HERO_BG = 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1920&q=100'
 const GALLERY_1 = 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800'
 const GALLERY_2 = 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=800'
 const GALLERY_3 = 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800'
 const STEP2_IMG = 'https://lh3.googleusercontent.com/aida-public/AB6AXuA9bZDK4JatNaefVw2LZrQ3wpnhx9dg5l7HomJnTsKnwH3g3tq3hW66YDO3Q2g5_xJRET701Jm4nq0lczF0Yd8BgujuHHzS8qhNGKMFolWZ6FS90yY9cPJn2EwPK8bovm9l049AGGAiNKojLTKsRdvbd58LgVqxLcnnPvFdJPXIUekxR37mkJfT8Ixqqobwuww1HOZnaOYAzlSiYOSsIjZqIhoRMspUEmgU8Yu2ij9D8MKJias_Jc_hyolEV9KQO4A-mEhRf0G_8Pc'
 
+// Reusable variants
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: (i = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.15, duration: 0.6, ease: 'easeOut' } }),
+  visible: (i = 0) => ({
+    opacity: 1, y: 0,
+    transition: { delay: i * 0.15, duration: 0.6, ease: 'easeOut' },
+  }),
+}
+
+const fadeLeft = {
+  hidden: { opacity: 0, x: -40 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+}
+
+const fadeRight = {
+  hidden: { opacity: 0, x: 40 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+}
+
+const scaleUp = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: 'easeOut' } },
 }
 
 export default function LandingPage() {
@@ -19,44 +37,103 @@ export default function LandingPage() {
 
   return (
     <div className="bg-surface text-on-surface font-body antialiased selection:bg-primary/20 selection:text-primary">
-      {/* Navbar is now rendered at the App level */}
 
       {/* ─── Hero Section ─── */}
       <section id="hero" className="relative min-h-screen flex items-center pt-20 overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img alt="Luxury modern living room" className="w-full h-full object-cover" src={HERO_BG} />
-          <div className="absolute inset-0 bg-black/10" />
-        </div>
+        {/* Background with slow zoom */}
+        <motion.div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url(${HERO_BG})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+          initial={{ scale: 1 }}
+          animate={{ scale: 1.05 }}
+          transition={{ duration: 8, ease: 'easeInOut', repeat: Infinity, repeatType: 'reverse' }}
+        />
+        {/* Separate overlay — does NOT affect image quality */}
+        <div className="absolute inset-0 z-0 bg-black/30" />
+
         <div className="container mx-auto px-8 md:px-12 relative z-10">
+          {/* Glassmorphism card: fade in + slide up */}
           <motion.div
-            className="max-w-3xl bg-surface-container-lowest/40 backdrop-blur-2xl p-8 md:p-16 rounded-xl border border-white/20 shadow-2xl"
-            initial="hidden"
-            animate="visible"
-            variants={fadeUp}
+            className="max-w-3xl p-8 md:p-16"
+            style={{
+              background: 'rgba(245,240,235,0.75)',
+              backdropFilter: 'blur(4px)',
+              WebkitBackdropFilter: 'blur(4px)',
+              border: '1px solid rgba(255,255,255,0.5)',
+              borderRadius: '24px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+            }}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6, ease: 'easeOut' }}
           >
-            <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-bold tracking-widest uppercase mb-6">
+            {/* Badge */}
+            <motion.span
+              className="inline-block px-4 py-1.5 bg-primary/10 rounded-full text-xs font-bold tracking-widest uppercase mb-6"
+              style={{ color: '#B8860B' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0, duration: 0.5 }}
+            >
               Experience the future
-            </span>
-            <h1 className="text-5xl md:text-7xl font-headline font-extrabold tracking-tighter text-on-surface leading-[1.1] mb-6">
+            </motion.span>
+
+            {/* Heading */}
+            <motion.h1
+              className="text-5xl md:text-7xl font-headline font-extrabold tracking-tighter leading-[1.1] mb-6"
+              style={{ color: '#1a1a1a' }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6, ease: 'easeOut' }}
+            >
               Redesign Your Space with AI
-            </h1>
-            <p className="text-xl text-on-surface-variant font-light leading-relaxed mb-10 max-w-xl">
+            </motion.h1>
+
+            {/* Subtext */}
+            <motion.p
+              className="text-xl font-light leading-relaxed mb-10 max-w-xl"
+              style={{ color: '#3d3d3d' }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6, ease: 'easeOut' }}
+            >
               Upload a photo, generate new styles, and customize your room in interactive 3D. Precision-crafted interiors at your fingertips.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                to={user ? '/workspace' : '/auth'}
-                className="bg-primary-gradient text-white px-10 py-5 rounded-xl font-headline font-extrabold text-lg flex items-center justify-center gap-3 shadow-xl shadow-primary/30 transition-all hover:scale-[1.02]"
+            </motion.p>
+
+            {/* Buttons */}
+            <motion.div
+              className="flex flex-col sm:flex-row gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.6, ease: 'easeOut' }}
+            >
+              <motion.div
+                whileHover={{
+                  boxShadow: '0 0 24px 6px rgba(139,115,85,0.45)',
+                  scale: 1.03,
+                }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="rounded-xl"
               >
-                Start Designing <span className="material-symbols-outlined">arrow_forward</span>
-              </Link>
+                <Link
+                  to={user ? '/workspace' : '/auth'}
+                  className="bg-primary-gradient text-white px-10 py-5 rounded-xl font-headline font-extrabold text-lg flex items-center justify-center gap-3 shadow-xl shadow-primary/30 transition-all"
+                >
+                  Start Designing <span className="material-symbols-outlined">arrow_forward</span>
+                </Link>
+              </motion.div>
               <a
                 href="#steps"
                 className="bg-white/80 backdrop-blur-md text-on-surface px-10 py-5 rounded-xl font-headline font-extrabold text-lg flex items-center justify-center gap-3 transition-all hover:bg-white"
               >
                 Learn More
               </a>
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </section>
@@ -64,13 +141,29 @@ export default function LandingPage() {
       {/* ─── How it Works (Bento Grid) ─── */}
       <section id="steps" className="py-32 px-8 bg-surface">
         <div className="max-w-screen-2xl mx-auto">
-          <motion.div className="text-center mb-20" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+          {/* Section title */}
+          <motion.div
+            className="text-center mb-20"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            variants={fadeUp}
+          >
             <h2 className="text-4xl md:text-5xl font-headline font-extrabold tracking-tight mb-4">Magic in Three Steps</h2>
             <div className="w-24 h-1 bg-primary mx-auto rounded-full" />
           </motion.div>
+
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-            {/* Step 1 */}
-            <motion.div className="md:col-span-4 bg-surface-container-low p-10 rounded-xl relative overflow-hidden group" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0} variants={fadeUp}>
+            {/* Step 1 — slide from LEFT */}
+            <motion.div
+              className="md:col-span-4 bg-surface-container-low p-10 rounded-xl relative overflow-hidden group"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={fadeLeft}
+              whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(0,0,0,0.12)' }}
+              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+            >
               <div className="relative z-10">
                 <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-8 transition-transform group-hover:scale-110">
                   <span className="material-symbols-outlined text-primary text-3xl">upload_file</span>
@@ -79,8 +172,17 @@ export default function LandingPage() {
                 <p className="text-on-surface-variant font-light leading-relaxed">Simply snap a photo of your existing room. Our AI instantly analyzes dimensions, lighting, and architectural features.</p>
               </div>
             </motion.div>
-            {/* Step 2 */}
-            <motion.div className="md:col-span-8 bg-surface-container-highest/50 p-10 rounded-xl relative overflow-hidden group" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1} variants={fadeUp}>
+
+            {/* Step 2 — slide from BOTTOM */}
+            <motion.div
+              className="md:col-span-8 bg-surface-container-highest/50 p-10 rounded-xl relative overflow-hidden group"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={fadeUp}
+              whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(0,0,0,0.12)' }}
+              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+            >
               <div className="grid md:grid-cols-2 gap-10 items-center">
                 <div className="relative z-10">
                   <div className="w-16 h-16 bg-primary-gradient text-white rounded-2xl flex items-center justify-center shadow-lg mb-8 transition-transform group-hover:scale-110">
@@ -94,8 +196,17 @@ export default function LandingPage() {
                 </div>
               </div>
             </motion.div>
-            {/* Step 3 */}
-            <motion.div className="md:col-span-7 bg-inverse-surface p-10 rounded-xl relative overflow-hidden group" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={2} variants={fadeUp}>
+
+            {/* Step 3 — slide from RIGHT */}
+            <motion.div
+              className="md:col-span-7 bg-inverse-surface p-10 rounded-xl relative overflow-hidden group"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={fadeRight}
+              whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(0,0,0,0.18)' }}
+              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+            >
               <div className="grid md:grid-cols-5 gap-10 items-center h-full">
                 <div className="md:col-span-2 relative z-10">
                   <div className="w-16 h-16 bg-white/10 text-white rounded-2xl flex items-center justify-center backdrop-blur-lg mb-8 transition-transform group-hover:scale-110">
@@ -115,15 +226,30 @@ export default function LandingPage() {
                 </div>
               </div>
             </motion.div>
-            {/* CTA Card */}
-            <motion.div className="md:col-span-5 bg-surface-container-low p-10 rounded-xl flex flex-col justify-between border border-primary/5" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={3} variants={fadeUp}>
+
+            {/* CTA Card — scale up */}
+            <motion.div
+              className="md:col-span-5 bg-surface-container-low p-10 rounded-xl flex flex-col justify-between border border-primary/5"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={scaleUp}
+            >
               <div>
                 <h3 className="text-2xl font-headline font-bold mb-4">Ready to start?</h3>
                 <p className="text-on-surface-variant font-light mb-8">Join over 10,000 homeowners and designers using StyleNest AI to revolutionize their living spaces.</p>
               </div>
-              <Link to={user ? '/dashboard' : '/auth'} className="w-full py-4 text-primary font-headline font-bold border border-primary rounded-xl hover:bg-primary hover:text-white transition-all text-center">
-                Explore Gallery
-              </Link>
+              <motion.div
+                whileHover={{ backgroundPosition: '200% center' }}
+                className="relative overflow-hidden rounded-xl"
+              >
+                <Link
+                  to={user ? '/workspace' : '/auth'}
+                  className="block w-full py-4 text-primary font-headline font-bold border border-primary rounded-xl hover:bg-primary hover:text-white transition-all text-center relative z-10"
+                >
+                  Explore Gallery
+                </Link>
+              </motion.div>
             </motion.div>
           </div>
         </div>
@@ -134,21 +260,52 @@ export default function LandingPage() {
         <div className="max-w-screen-2xl mx-auto px-8">
           <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
             <div className="max-w-2xl">
-              <h2 className="text-4xl font-headline font-extrabold tracking-tight mb-6">Stunning Transformations</h2>
-              <p className="text-on-surface-variant font-light text-lg">See how our AI turns mundane spaces into curated architectural masterpieces with a single click.</p>
+              {/* Heading fade-up */}
+              <motion.h2
+                className="text-4xl font-headline font-extrabold tracking-tight mb-6"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-50px' }}
+                variants={fadeUp}
+              >
+                Stunning Transformations
+              </motion.h2>
+              <motion.p
+                className="text-on-surface-variant font-light text-lg"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-50px' }}
+                variants={fadeUp}
+                custom={1}
+              >
+                See how our AI turns mundane spaces into curated architectural masterpieces with a single click.
+              </motion.p>
             </div>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             {[
               { img: GALLERY_1, title: 'Modern Living Room', sub: 'Living Room • Contemporary' },
               { img: GALLERY_2, title: 'Minimal Bedroom', sub: 'Bedroom • Scandinavian' },
               { img: GALLERY_3, title: 'Luxury Kitchen', sub: 'Kitchen • Modern' },
             ].map((item, idx) => (
-              <motion.div key={idx} className="group" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={idx} variants={fadeUp}>
-                <div className="relative rounded-2xl overflow-hidden aspect-[4/3] shadow-xl">
+              <motion.div
+                key={idx}
+                className="group"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-50px' }}
+                variants={fadeUp}
+                custom={idx}
+              >
+                <motion.div
+                  className="relative rounded-2xl overflow-hidden aspect-[4/3] shadow-xl"
+                  whileHover={{ scale: 1.04 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                >
                   <img
                     alt={item.title}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover"
                     src={item.img}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -156,62 +313,22 @@ export default function LandingPage() {
                     <p className="font-headline font-bold text-lg leading-tight">{item.title}</p>
                     <p className="text-sm text-white/75 mt-0.5">{item.sub}</p>
                   </div>
-                </div>
+                </motion.div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ─── Pricing ─── */}
-      <section id="pricing" className="py-32 bg-white">
-        <div className="max-w-screen-2xl mx-auto px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl font-headline font-extrabold tracking-tight mb-4">Invest in Your Home</h2>
-            <p className="text-on-surface-variant font-light">Simple plans for every level of inspiration.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Explorer */}
-            <motion.div className="p-10 rounded-xl bg-surface-container-low transition-all hover:translate-y-[-8px]" whileHover={{ y: -8 }}>
-              <p className="font-headline font-extrabold text-sm tracking-widest uppercase text-secondary mb-8">Explorer</p>
-              <div className="mb-8"><span className="text-5xl font-headline font-extrabold">$0</span><span className="text-on-surface-variant">/month</span></div>
-              <ul className="space-y-4 mb-10">
-                <li className="flex items-center gap-3 text-on-surface-variant"><span className="material-symbols-outlined text-primary text-sm">check_circle</span> 3 Renders per Month</li>
-                <li className="flex items-center gap-3 text-on-surface-variant"><span className="material-symbols-outlined text-primary text-sm">check_circle</span> 5 Standard Styles</li>
-                <li className="flex items-center gap-3 text-on-surface-variant opacity-50"><span className="material-symbols-outlined text-sm">cancel</span> High-res Export</li>
-              </ul>
-              <Link to="/auth" className="block w-full py-4 rounded-xl font-headline font-bold bg-white text-on-surface hover:bg-surface-container-highest transition-all text-center">Get Started</Link>
-            </motion.div>
-            {/* Designer (Most Popular) */}
-            <motion.div className="p-10 rounded-xl bg-inverse-surface text-white relative shadow-2xl" whileHover={{ y: -8 }}>
-              <div className="absolute top-0 right-10 -translate-y-1/2 bg-primary text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Most Popular</div>
-              <p className="font-headline font-extrabold text-sm tracking-widest uppercase text-primary mb-8">Designer</p>
-              <div className="mb-8"><span className="text-5xl font-headline font-extrabold">$29</span><span className="text-white/60">/month</span></div>
-              <ul className="space-y-4 mb-10 text-white/80">
-                <li className="flex items-center gap-3"><span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> Unlimited Renders</li>
-                <li className="flex items-center gap-3"><span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> 3D Interaction Lab</li>
-                <li className="flex items-center gap-3"><span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> 4K Photorealistic Exports</li>
-              </ul>
-              <Link to="/auth" className="block w-full py-4 rounded-xl font-headline font-bold bg-primary-gradient text-white shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all text-center">Go Pro</Link>
-            </motion.div>
-            {/* Studio */}
-            <motion.div className="p-10 rounded-xl bg-surface-container-low transition-all" whileHover={{ y: -8 }}>
-              <p className="font-headline font-extrabold text-sm tracking-widest uppercase text-secondary mb-8">Studio</p>
-              <div className="mb-8"><span className="text-5xl font-headline font-extrabold">$99</span><span className="text-on-surface-variant">/month</span></div>
-              <ul className="space-y-4 mb-10">
-                <li className="flex items-center gap-3 text-on-surface-variant"><span className="material-symbols-outlined text-primary text-sm">check_circle</span> Everything in Pro</li>
-                <li className="flex items-center gap-3 text-on-surface-variant"><span className="material-symbols-outlined text-primary text-sm">check_circle</span> Team Collaboration</li>
-                <li className="flex items-center gap-3 text-on-surface-variant"><span className="material-symbols-outlined text-primary text-sm">check_circle</span> Custom Style Training</li>
-              </ul>
-              <button className="w-full py-4 rounded-xl font-headline font-bold bg-white text-on-surface hover:bg-surface-container-highest transition-all">Contact Sales</button>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
       {/* ─── CTA Section ─── */}
       <section className="py-24 px-8">
-        <div className="max-w-5xl mx-auto rounded-xl bg-primary-gradient p-12 md:p-24 text-center text-white relative overflow-hidden">
+        <motion.div
+          className="max-w-5xl mx-auto rounded-xl bg-primary-gradient p-12 md:p-24 text-center text-white relative overflow-hidden"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-50px' }}
+          variants={scaleUp}
+        >
           <div className="relative z-10">
             <h2 className="text-4xl md:text-6xl font-headline font-extrabold tracking-tight mb-8">Ready to reinvent your reality?</h2>
             <p className="text-xl text-white/80 font-light mb-12 max-w-2xl mx-auto">Take the first step towards a home that truly reflects your soul.</p>
@@ -220,7 +337,7 @@ export default function LandingPage() {
             </Link>
           </div>
           <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        </div>
+        </motion.div>
       </section>
 
       {/* ─── Footer ─── */}

@@ -206,7 +206,7 @@ export default function Canvas3D() {
           </div>
           {/* Save CTA */}
           <div className="absolute top-8 right-8 z-10">
-            <Link to="/dashboard" className="primary-gradient text-white px-8 py-4 rounded-xl font-headline font-bold shadow-xl shadow-primary/20 flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all">
+            <Link to="/workspace" className="primary-gradient text-white px-8 py-4 rounded-xl font-headline font-bold shadow-xl shadow-primary/20 flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all">
               <span>Save Scene</span>
               <span className="material-symbols-outlined">auto_awesome</span>
             </Link>

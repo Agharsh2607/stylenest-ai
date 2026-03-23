@@ -6,10 +6,19 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      '/api': {
-        target: 'http://localhost:3001',
+      // Proxy HF requests to avoid CORS
+      '/proxy/hf': {
+        target: 'https://router.huggingface.co',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        rewrite: (path) => path.replace(/^\/proxy\/hf/, '/hf-inference'),
+        secure: true,
+      },
+      // Proxy Gemini requests to avoid CORS
+      '/proxy/gemini': {
+        target: 'https://generativelanguage.googleapis.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/proxy\/gemini/, ''),
+        secure: true,
       },
     },
   },

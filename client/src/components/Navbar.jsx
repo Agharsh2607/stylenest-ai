@@ -1,47 +1,71 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { motion, useScroll, useTransform } from 'framer-motion'
 
 export default function Navbar() {
-  const { user } = useAuth()
   const location = useLocation()
+  const isHome = location.pathname === '/'
+  const { scrollY } = useScroll()
+
+  // On home: transparent → dark on scroll
+  // On other pages: always dark
+  const bgColor = useTransform(
+    scrollY,
+    [0, 80],
+    isHome
+      ? ['rgba(30,20,10,0)', 'rgba(30,20,10,0.82)']
+      : ['rgba(30,20,10,0.92)', 'rgba(30,20,10,0.92)']
+  )
 
   return (
-    <header className="fixed top-0 z-50 w-full bg-white/70 backdrop-blur-xl shadow-sm shadow-zinc-200/50">
+    <motion.header
+      className="fixed top-0 z-[1000] w-full"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+    >
+      <motion.div
+        className="absolute inset-0 -z-10 backdrop-blur-md"
+        style={{ backgroundColor: bgColor }}
+      />
+
       <nav className="flex justify-between items-center w-full px-8 py-4 max-w-screen-2xl mx-auto">
-        <Link to="/" className="text-xl font-bold tracking-tighter text-zinc-900 font-headline">StyleNest AI</Link>
+        <Link to="/" className="text-xl font-bold tracking-tighter text-white font-headline">
+          StyleNest AI
+        </Link>
+
         <div className="hidden md:flex items-center gap-8 font-headline text-sm font-bold tracking-tight">
-          <Link
-            className={`transition-colors ${location.pathname === '/' ? 'text-amber-600 font-bold border-b-2 border-amber-500 pb-1' : 'text-zinc-600 hover:text-zinc-900'}`}
-            to="/"
-          >
-            Home
-          </Link>
-          <Link
-            className={`transition-colors ${location.pathname === '/workspace' ? 'text-amber-600 font-bold border-b-2 border-amber-500 pb-1' : 'text-zinc-600 hover:text-zinc-900'}`}
-            to={user ? '/workspace' : '/auth'}
-          >
-            Workspace
-          </Link>
-          <Link
-            className={`transition-colors ${location.pathname === '/dashboard' ? 'text-amber-600 font-bold border-b-2 border-amber-500 pb-1' : 'text-zinc-600 hover:text-zinc-900'}`}
-            to={user ? '/dashboard' : '/auth'}
-          >
-            Dashboard
-          </Link>
-          <a className="text-zinc-600 hover:text-zinc-900 transition-colors" href="/#pricing">Pricing</a>
+          {[
+            { label: 'Home', to: '/' },
+            { label: 'Workspace', to: '/workspace' },
+            { label: 'Pricing', to: '/pricing' },
+          ].map(({ label, to }) => {
+            const isActive = location.pathname === to
+            return (
+              <Link
+                key={label}
+                to={to}
+                className={`relative group transition-colors duration-200 ${
+                  isActive ? 'text-amber-400' : 'text-white hover:text-amber-400'
+                }`}
+              >
+                {label}
+                <span
+                  className={`absolute -bottom-1 left-0 h-0.5 bg-amber-400 rounded-full transition-all duration-300 ease-out ${
+                    isActive ? 'w-full' : 'w-0 group-hover:w-full'
+                  }`}
+                />
+              </Link>
+            )
+          })}
         </div>
-        <div className="flex items-center gap-4">
-          {user ? (
-            <Link to="/dashboard" className="bg-primary-gradient text-white px-6 py-2.5 rounded-xl font-headline font-bold text-sm transition-transform active:scale-95 shadow-lg shadow-primary/20">
-              Dashboard
-            </Link>
-          ) : (
-            <Link to="/auth" className="bg-primary-gradient text-white px-6 py-2.5 rounded-xl font-headline font-bold text-sm transition-transform active:scale-95 shadow-lg shadow-primary/20">
-              Start Designing
-            </Link>
-          )}
-        </div>
+
+        <Link
+          to="/auth"
+          className="bg-primary-gradient text-white px-6 py-2.5 rounded-xl font-headline font-bold text-sm transition-transform active:scale-95 shadow-lg shadow-primary/20"
+        >
+          Start Designing
+        </Link>
       </nav>
-    </header>
+    </motion.header>
   )
 }

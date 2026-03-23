@@ -25,7 +25,7 @@ export default function AuthPage() {
     try {
       if (isLogin) {
         await signIn(email, password)
-        navigate('/dashboard')
+        navigate('/workspace')
       } else {
         await signUp(email, password)
         setSuccessMsg('Check your email to confirm your account!')
