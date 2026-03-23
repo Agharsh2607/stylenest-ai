@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+/* ──────────────────────────────────────────────
+   StyleNest AI — Design System Tokens
+   Extracted from the provided HTML mockups
+   ────────────────────────────────────────────── */
+
+@theme {
+  /* ── Colors ── */
+  --color-primary: #775a19;
+  --color-secondary: #5f5e5e;
+  --color-surface: #f9f9f9;
+  --color-on-surface: #1a1c1c;
+  --color-on-surface-variant: #4e4639;
+  --color-on-primary: #ffffff;
+  --color-on-secondary: #ffffff;
+  --color-on-tertiary: #ffffff;
+  --color-on-error: #ffffff;
+  --color-outline: #7f7667;
+  --color-outline-variant: #d1c5b4;
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-tertiary: #456465;
+  --color-tertiary-container: #8babac;
+  --color-tertiary-fixed: #c8e9ea;
+  --color-tertiary-fixed-dim: #accdcd;
+  --color-on-tertiary-fixed: #002021;
+  --color-on-tertiary-fixed-variant: #2d4c4d;
+  --color-on-tertiary-container: #214041;
+  --color-primary-container: #c5a059;
+  --color-primary-fixed: #ffdea5;
+  --color-primary-fixed-dim: #e9c176;
+  --color-on-primary-container: #4e3700;
+  --color-on-primary-fixed: #261900;
+  --color-on-primary-fixed-variant: #5d4201;
+  --color-secondary-container: #e2dfde;
+  --color-secondary-fixed: #e5e2e1;
+  --color-secondary-fixed-dim: #c8c6c5;
+  --color-on-secondary-fixed: #1c1b1b;
+  --color-on-secondary-fixed-variant: #474746;
+  --color-on-secondary-container: #636262;
+  --color-surface-bright: #f9f9f9;
+  --color-surface-dim: #dadada;
+  --color-surface-variant: #e2e2e2;
+  --color-surface-tint: #775a19;
+  --color-surface-container: #eeeeee;
+  --color-surface-container-low: #f3f3f3;
+  --color-surface-container-high: #e8e8e8;
+  --color-surface-container-highest: #e2e2e2;
+  --color-surface-container-lowest: #ffffff;
+  --color-background: #f9f9f9;
+  --color-on-background: #1a1c1c;
+  --color-inverse-surface: #2f3131;
+  --color-inverse-on-surface: #f1f1f1;
+  --color-inverse-primary: #e9c176;
+
+  /* ── Font Families ── */
+  --font-headline: "Manrope", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Inter", sans-serif;
+
+  /* ── Border Radius ── */
+  --radius: 1rem;
+  --radius-lg: 2rem;
+  --radius-xl: 3rem;
+  --radius-full: 9999px;
+}
+
+/* ── Utility Classes ── */
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.primary-gradient {
+  background: linear-gradient(135deg, #775a19 0%, #c5a059 100%);
+}
+
+.bg-primary-gradient {
+  background: linear-gradient(135deg, #775a19 0%, #c5a059 100%);
+}
+
+.bg-gold-gradient {
+  background: linear-gradient(135deg, #775a19 0%, #c5a059 100%);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1c5b4;
+  border-radius: 10px;
+}
+
+/* ── Smooth scroll ── */
+html {
+  scroll-behavior: smooth;
+}
