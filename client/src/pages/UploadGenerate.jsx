@@ -1,9 +1,32 @@
-import { useState, useRef, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
-import { analyzeRoomWithGemini, generateImage } from '../utils/generateDesign'
+import { analyzeRoomWithGemini, generateImage, checkDemoOverride } from '../utils/generateDesign'
+import { saveDesign, fetchUserDesigns, deleteDesign, isSupabaseConfigured } from '../services/supabase'
+
+// ─── Local storage helpers (demo/fallback mode) ─── //
+const LS_KEY = 'stylenest_designs'
+function lsGetDesigns(userId) {
+  try {
+    const all = JSON.parse(localStorage.getItem(LS_KEY) || '[]')
+    return all.filter((d) => d.user_id === userId).sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+  } catch { return [] }
+}
+function lsSaveDesign(design) {
+  try {
+    const all = JSON.parse(localStorage.getItem(LS_KEY) || '[]')
+    all.unshift(design)
+    localStorage.setItem(LS_KEY, JSON.stringify(all))
+  } catch {}
+}
+function lsDeleteDesign(id) {
+  try {
+    const all = JSON.parse(localStorage.getItem(LS_KEY) || '[]')
+    localStorage.setItem(LS_KEY, JSON.stringify(all.filter((d) => d.id !== id)))
+  } catch {}
+}
 
 const STYLE_IMAGES = {
   modern: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBGXZQmjw5pPSfqRRAFG-A73by-owRbOIuSOM_wmEFeYUY2l5BMlaupf4Zwtj2kV3TwUMWneF-TViefN8HGhqoXapHt5r-QvNZMNQA98le8Xk5BTZJLcRaErt7q1-RUH4XLAp3ru2uSV3UT0NDXzPIy1e7U5WeSrbdd6aLhgVRrnzZt8bz2Es-2BrbhKh2AkyyyG5WqiDenh3Awnd-x_uv4PLxLLSX-ThpnpyNgli_efyZoUQn1UekLtP3hfSA0n-1ZL3Ab2WPhibg',
@@ -82,20 +105,137 @@ function SettingsPanel({ user }) {
   )
 }
 
-function MyDesignsPanel() {
+function MyDesignsPanel({ user, onViewChange }) {
+  const [designs, setDesigns] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [deleting, setDeleting] = useState(null)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!user) { setLoading(false); return }
+    let cancelled = false
+    const load = async () => {
+      setLoading(true)
+      try {
+        let data = []
+        if (isSupabaseConfigured()) {
+          data = await fetchUserDesigns(user.id)
+        }
+        // Merge with localStorage (covers designs saved before Supabase was configured)
+        const local = lsGetDesigns(user.id)
+        const supaIds = new Set(data.map(d => d.id))
+        const merged = [...data, ...local.filter(d => !supaIds.has(d.id))]
+        if (!cancelled) setDesigns(merged)
+      } catch (e) {
+        console.warn('Supabase load failed, using localStorage:', e.message)
+        if (!cancelled) setDesigns(lsGetDesigns(user.id))
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [user])
+
+  const handleDelete = async (id) => {
+    setDeleting(id)
+    try {
+      if (isSupabaseConfigured()) {
+        await deleteDesign(id)
+      } else {
+        lsDeleteDesign(id)
+      }
+      setDesigns((prev) => prev.filter((d) => d.id !== id))
+    } catch (e) {
+      console.error('Delete failed:', e)
+    } finally {
+      setDeleting(null)
+    }
+  }
+
+  const handleOpen = (design) => {
+    navigate('/result', {
+      state: {
+        originalImage: design.original_image,
+        generatedImage: design.generated_image,
+        designTitle: design.style.charAt(0).toUpperCase() + design.style.slice(1) + ' Sanctuary',
+        style: design.style,
+        styleSummary: [
+          { icon: 'palette', title: design.style + ' Style', desc: 'AI-generated interior design.' },
+          { icon: 'chair', title: 'Curated Furniture', desc: 'Furniture matched to your style.' },
+          { icon: 'light_mode', title: 'Optimized Lighting', desc: 'Lighting tailored for the space.' },
+        ],
+        processingTime: design.processing_time || '—',
+      }
+    })
+  }
+
   return (
     <div className="max-w-6xl">
       <h2 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface mb-8">My Designs</h2>
-      <div className="flex flex-col items-center justify-center py-24 text-center bg-surface-container-lowest rounded-xl border-2 border-dashed border-outline-variant/30">
-        <span className="material-symbols-outlined text-5xl text-on-surface-variant/40 mb-4">photo_library</span>
-        <p className="text-on-surface-variant font-headline font-medium">No designs yet. Create your first one!</p>
-      </div>
+      {loading ? (
+        <div className="flex items-center justify-center py-24">
+          <div className="w-10 h-10 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+        </div>
+      ) : designs.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-24 text-center bg-surface-container-lowest rounded-xl border-2 border-dashed border-outline-variant/30">
+          <span className="material-symbols-outlined text-5xl text-on-surface-variant/40 mb-4">photo_library</span>
+          <p className="text-on-surface-variant font-headline font-medium mb-4">No designs yet. Create your first one!</p>
+          <button onClick={() => onViewChange('workspace')}
+            className="px-6 py-2 bg-gold-gradient text-white rounded-xl font-headline font-bold text-sm shadow-lg">
+            Start Designing
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {designs.map((design) => (
+            <div key={design.id} className="group bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm border border-outline-variant/10 hover:shadow-md transition-all">
+              <div className="relative aspect-video cursor-pointer" onClick={() => handleOpen(design)}>
+                <img
+                  src={design.generated_image}
+                  alt={design.style}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  onError={(e) => { e.target.src = design.original_image }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                  <span className="text-white text-xs font-bold uppercase tracking-widest">View Design</span>
+                </div>
+                <span className="absolute top-3 left-3 bg-black/60 text-white text-[10px] px-2 py-1 rounded-full font-bold uppercase backdrop-blur-sm capitalize">
+                  {design.style}
+                </span>
+              </div>
+              <div className="p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold text-on-surface capitalize">{design.style} Sanctuary</p>
+                  <p className="text-xs text-on-surface-variant mt-0.5">
+                    {new Date(design.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleDelete(design.id)}
+                  disabled={deleting === design.id}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 hover:text-red-500 text-on-surface-variant transition-all disabled:opacity-40"
+                >
+                  {deleting === design.id
+                    ? <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                    : <span className="material-symbols-outlined text-base">delete</span>}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
 
 export default function UploadGenerate() {
-  const [activeView, setActiveView] = useState('workspace')
+  const { user } = useAuth()
+  const location = useLocation()
+  const fileInputRef = useRef(null)
+  const navigate = useNavigate()
+
+  const [activeView, setActiveView] = useState(location.state?.view || 'workspace')
   const [selectedStyle, setSelectedStyle] = useState('modern')
   const [uploadedImage, setUploadedImage] = useState(null)
   const [uploadedFile, setUploadedFile] = useState(null)
@@ -106,9 +246,6 @@ export default function UploadGenerate() {
   const [toast, setToast] = useState(null)
   const [showHelp, setShowHelp] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
-  const { user } = useAuth()
-  const fileInputRef = useRef(null)
-  const navigate = useNavigate()
 
   const showToast = (msg) => setToast(msg)
 
@@ -145,7 +282,6 @@ export default function UploadGenerate() {
     setIsGenerating(true)
     setError('')
     const startTime = Date.now()
-
     let msgIdx = 0
     setLoadingMsg(LOADING_MESSAGES[0])
     const msgInterval = setInterval(() => {
@@ -153,36 +289,57 @@ export default function UploadGenerate() {
       setLoadingMsg(LOADING_MESSAGES[msgIdx])
     }, 3000)
 
-    try {
-      // Convert file to base64 once — used for Gemini and passed to result page
-      const imageBase64 = await new Promise((resolve) => {
-        const reader = new FileReader()
-        reader.onload = () => resolve(reader.result)
-        reader.readAsDataURL(uploadedFile)
-      })
-
-      // Step 1: Gemini reads room and writes prompt
-      const imagePrompt = await analyzeRoomWithGemini(uploadedFile, selectedStyle)
-
-      // Step 2: NVIDIA Flux generates furnished room
-      const generatedImageUrl = await generateImage(imagePrompt)
-
-      const processingTime = ((Date.now() - startTime) / 1000).toFixed(1) + 's'
-
+    const finish = (imageBase64, generatedImageUrl, processingTime) => {
+      const designRecord = {
+        id: `design-${Date.now()}`,
+        user_id: user?.id || 'demo-user',
+        original_image: `data:${uploadedFile.type || 'image/jpeg'};base64,${imageBase64}`,
+        generated_image: generatedImageUrl,
+        style: selectedStyle,
+        processing_time: processingTime,
+        created_at: new Date().toISOString(),
+      }
+      // Save to Supabase or localStorage
+      if (isSupabaseConfigured() && user?.id && !user.id.startsWith('demo')) {
+        saveDesign({ userId: user.id, originalImage: designRecord.original_image, generatedImage: generatedImageUrl, style: selectedStyle })
+          .catch(e => { console.warn('Supabase save failed:', e.message); lsSaveDesign(designRecord) })
+      } else {
+        lsSaveDesign(designRecord)
+      }
       navigate('/result', {
         state: {
-          originalImage: imageBase64,
+          originalImage: designRecord.original_image,
           generatedImage: generatedImageUrl,
           designTitle: selectedStyle.charAt(0).toUpperCase() + selectedStyle.slice(1) + ' Sanctuary',
           styleSummary: [
-            { icon: 'palette', title: selectedStyle + ' Style', desc: 'Gemini AI designed a ' + selectedStyle + ' interior for your room.' },
-            { icon: 'chair', title: 'Curated Furniture', desc: 'Furniture hand-picked to match your style perfectly.' },
-            { icon: 'light_mode', title: 'Optimized Lighting', desc: 'Lighting and ambiance tailored for the space.' },
+            { icon: 'palette', title: selectedStyle + ' Style', desc: 'AI-designed ' + selectedStyle + ' interior.' },
+            { icon: 'chair',   title: 'Curated Furniture',      desc: 'Furniture matched to your style.' },
+            { icon: 'light_mode', title: 'Optimized Lighting',  desc: 'Lighting tailored for the space.' },
           ],
           processingTime,
           style: selectedStyle,
         }
       })
+    }
+
+    try {
+      // 1. Check demo override — instant, no API needed
+      const demoResult = await checkDemoOverride(uploadedFile, selectedStyle)
+      if (demoResult) {
+        clearInterval(msgInterval)
+        setIsGenerating(false)
+        const imageBase64 = await new Promise((res) => {
+          const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.readAsDataURL(uploadedFile)
+        })
+        finish(imageBase64, demoResult, '0.3s')
+        return
+      }
+
+      // 2. Normal AI pipeline
+      const { prompt: imagePrompt, imageBase64 } = await analyzeRoomWithGemini(uploadedFile, selectedStyle)
+      const generatedImageUrl = await generateImage(imagePrompt, imageBase64, uploadedFile, selectedStyle)
+      const processingTime = ((Date.now() - startTime) / 1000).toFixed(1) + 's'
+      finish(imageBase64, generatedImageUrl, processingTime)
     } catch (err) {
       console.error('Generation error:', err)
       setError(err.message)
@@ -200,7 +357,7 @@ export default function UploadGenerate() {
     <div className="flex min-h-screen bg-surface pt-20">
       <Sidebar activeView={activeView} onViewChange={handleViewChange} onNewProject={resetProject} />
       <main className="ml-64 min-h-screen p-12 flex-1">
-        {activeView === 'designs' && <MyDesignsPanel />}
+        {activeView === 'designs' && <MyDesignsPanel user={user} onViewChange={handleViewChange} />}
         {activeView === 'settings' && <SettingsPanel user={user} />}
         {activeView === 'workspace' && (
           <>
@@ -315,7 +472,7 @@ export default function UploadGenerate() {
                   <div className="flex items-center gap-4 p-4 bg-secondary-container/30 rounded-lg">
                     <span className="material-symbols-outlined text-primary">auto_awesome</span>
                     <p className="text-xs text-on-surface-variant leading-relaxed">
-                      Powered by <span className="font-bold">Gemini + NVIDIA Flux AI</span> pipeline.
+                      Powered by <span className="font-bold">Gemini + Stable Diffusion XL</span> pipeline.
                     </p>
                   </div>
                   <button onClick={handleGenerate} disabled={isGenerating}

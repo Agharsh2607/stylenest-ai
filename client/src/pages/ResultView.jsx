@@ -18,8 +18,6 @@ export default function ResultView() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  console.log('=== ResultView state:', location.state)
-
   const state = location.state || {}
   const originalImage = state.originalImage || FALLBACK_BEFORE
   const generatedImage = state.generatedImage || FALLBACK_AFTER
@@ -33,23 +31,23 @@ export default function ResultView() {
   ]
   const styleSummary = state.styleSummary || DEFAULT_SUMMARY
 
-  // Guard: if navigated directly without state, go back to workspace
-  if (!location.state) {
-    console.warn('No state found on ResultView, redirecting to /workspace')
-    navigate('/workspace', { replace: true })
-    return null
-  }
-
-  // Slider state
+  // All hooks must come before any conditional returns
   const [sliderPos, setSliderPos] = useState(50)
   const sliderRef = useRef(null)
   const isDragging = useRef(false)
-
-  // Regeneration state
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [currentGeneratedImage, setCurrentGeneratedImage] = useState(generatedImage)
   const [currentTitle, setCurrentTitle] = useState(designTitle)
   const [regenLoadingMsg, setRegenLoadingMsg] = useState('')
+
+  // Redirect if no state (direct URL access or page refresh)
+  useEffect(() => {
+    if (!location.state) {
+      navigate('/workspace', { replace: true })
+    }
+  }, [location.state, navigate])
+
+  if (!location.state) return null
 
   const handleVariationClick = async (variationStyle) => {
     if (isRegenerating) return
@@ -74,7 +72,7 @@ export default function ResultView() {
       const generateRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/generate-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: analyzeData.prompt }),
+        body: JSON.stringify({ prompt: analyzeData.prompt, imageBase64: base64 }),
       })
       const generateData = await generateRes.json()
 
@@ -108,19 +106,8 @@ export default function ResultView() {
     }
   }, [])
 
-  /** Download the generated image */
   const handleDownload = async () => {
     try {
-      // Handle base64 data URLs directly (NVIDIA returns these)
-      if (currentGeneratedImage.startsWith('data:')) {
-        const a = document.createElement('a')
-        a.href = currentGeneratedImage
-        a.download = `stylenest-${style.replace(/\s+/g, '-')}-${Date.now()}.jpg`
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        return
-      }
       const res = await fetch(currentGeneratedImage, { mode: 'cors' })
       if (!res.ok) throw new Error('Network response was not ok')
       const blob = await res.blob()
@@ -128,7 +115,7 @@ export default function ResultView() {
       const a = document.createElement('a')
       a.style.display = 'none'
       a.href = url
-      a.download = `stylenest-${style.replace(/\s+/g, '-')}-${Date.now()}.png`
+      a.download = `stylenest-${style.replace(/\s+/g, '-')}-${Date.now()}.jpg`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
@@ -141,7 +128,15 @@ export default function ResultView() {
 
   return (
     <div className="flex min-h-screen bg-surface">
-      <Sidebar active="designs" />
+      <Sidebar
+        activeView="designs"
+        onViewChange={(view) => {
+          if (view === 'workspace') navigate('/workspace')
+          else if (view === 'designs') navigate('/workspace', { state: { view: 'designs' } })
+          else if (view === 'settings') navigate('/workspace', { state: { view: 'settings' } })
+        }}
+        onNewProject={() => navigate('/workspace')}
+      />
       <main className="ml-64 flex-1 min-h-screen p-12 pt-24">
         {/* Header */}
         <header className="mb-12 flex justify-between items-center">

@@ -1,6 +1,8 @@
 const express = require('express')
 const cors = require('cors')
 const { GoogleGenerativeAI } = require('@google/generative-ai')
+const cloudinary = require('cloudinary').v2
+const Bytez = require('bytez.js')
 require('dotenv').config()
 
 const app = express()
@@ -8,6 +10,24 @@ app.use(cors({ origin: 'http://localhost:5173' }))
 app.use(express.json({ limit: '50mb' }))
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
+
+// Upload a base64 image to Cloudinary, returns secure URL
+async function uploadToCloudinary(base64Data, mimeType = 'image/jpeg') {
+  const dataUri = `data:${mimeType};base64,${base64Data}`
+  const result = await cloudinary.uploader.upload(dataUri, {
+    folder: 'stylenest-ai',
+    resource_type: 'image',
+    transformation: [{ quality: 'auto', fetch_format: 'auto' }],
+  })
+  console.log('Cloudinary upload success:', result.secure_url)
+  return result.secure_url
+}
 
 // ============================================
 // ROUTE 1: Gemini analyzes room + writes prompt
@@ -45,67 +65,35 @@ app.post('/api/analyze-room', async (req, res) => {
                 },
               },
               {
-                text: `You are an expert interior designer and AI image generation prompt engineer.
+                text: `You are analyzing an empty room photo to generate a furnished version while keeping the architecture 100% identical.
 
-CAREFULLY analyze this empty room photo and note EVERY detail:
-- EXACT window positions (left/right/back wall)
-- Window sizes (large/small/floor to ceiling)
-- Floor type (light oak wood, tile, carpet etc)
-- Wall colors (white, beige, grey etc)
-- Ceiling features (height, beams, lights)
-- Door positions
-- Room shape (square, rectangular, L-shaped)
-- Natural light direction
+TASK: Look at this room photo very carefully. Your job is to write an image generation prompt that produces the EXACT SAME ROOM but with ${style} style furniture added. ONLY the furniture changes. Everything else stays identical.
 
-Now write a Stable Diffusion prompt that will generate this EXACT SAME ROOM but furnished.
+FIRST, extract these architectural facts from the photo:
+- How many windows? Where exactly are they? (e.g. "two large windows on the left wall, one narrow window on the right wall")
+- What is the floor? (e.g. "warm honey-toned oak hardwood planks running horizontally")
+- What color are the walls? (e.g. "bright white", "warm off-white", "light grey")
+- What does the ceiling look like? (e.g. "white tray ceiling with recessed spotlights", "flat white ceiling")
+- Is there a door visible? Where?
+- What is the camera angle? (e.g. "eye-level wide shot from the corner", "straight-on from center")
+- Where is the natural light coming from?
 
-STRICT RULES FOR THE PROMPT:
-1. Start with the room description FIRST:
-"Interior of a room with [exact floor type], [exact wall color] walls, [window position] windows showing [outside view]..."
-2. Then add furniture in ${style} style
-3. Preserve exact window positions mentioned
-4. Preserve exact floor material and color
-5. Same camera angle and perspective
-6. Same natural lighting direction
+NOW write the prompt using this EXACT template, filling in the blanks from your analysis:
 
-STYLE SPECIFIC FURNITURE FOR ${style}:
-${style === 'Modern' ? `- Sleek low-profile grey or white sofa
-- Glass or metal coffee table
-- Recessed or track lighting
-- Abstract wall art
-- Minimal clutter
-- Colors: white, grey, black accents` : ''}
-${style === 'Industrial' ? `- Leather or dark fabric sofa
-- Reclaimed wood coffee table
-- Exposed Edison bulb lighting
-- Metal shelving units
-- Brick or concrete texture elements
-- Colors: dark brown, black, rust orange` : ''}
-${style === 'Minimal' ? `- Single clean-lined sofa in neutral tone
-- Simple wooden coffee table
-- No clutter, lots of open space
-- One or two plants maximum
-- White or cream color palette
-- Natural materials only` : ''}
-${style === 'Japandi' ? `- Low wooden platform sofa
-- Natural wood coffee table
-- Wabi-sabi ceramic decorations
-- Shoji-inspired lighting
-- Bamboo or rattan elements
-- Colors: warm beige, natural wood, sage green` : ''}
-${style === 'Bohemian' ? `- Colorful layered rugs
-- Eclectic mix of cushions and throws
-- Macrame wall hangings
-- Plants everywhere
-- Warm amber lighting
-- Colors: terracotta, burnt orange, deep purple` : ''}
+"Interior photograph of [EXACT ROOM DESCRIPTION: floor type and color, wall color, ceiling description], [EXACT WINDOW DESCRIPTION: count, positions, sizes, what is visible through them], [DOOR if visible], [CAMERA ANGLE], [NATURAL LIGHT DESCRIPTION]. The room is furnished in ${style} style with [FURNITURE LIST FOR ${style}]. The furniture is arranged in the center and against walls, not blocking any windows. The architectural structure, window positions, wall colors, floor material, ceiling, and camera perspective are identical to the original empty room. photorealistic, 8k, professional interior design photography, virtual staging, furniture only added, architecture unchanged."
 
-END the prompt with:
-"photorealistic, 8k resolution, professional interior design photography, same room same angle same perspective, preserve original room structure"
+FURNITURE TO USE FOR ${style} STYLE:
+${style === 'Modern' ? 'a sleek low-profile light grey sectional sofa, a rectangular glass-top coffee table with thin metal legs, a large abstract monochrome canvas on the back wall, a geometric wool area rug, minimal decorative objects, clean lines throughout' : ''}${style === 'Industrial' ? 'a dark brown leather sofa with metal legs, a solid reclaimed wood coffee table, Edison bulb pendant lights hanging from ceiling, black metal open shelving unit against a side wall, a vintage-style area rug' : ''}${style === 'Minimal' ? 'a single clean-lined cream linen sofa, a low solid oak coffee table, one tall fiddle-leaf fig tree in a white pot in the corner, a simple jute area rug, no clutter, maximum open space' : ''}${style === 'Japandi' ? 'a low-profile natural walnut wood sofa with cream cushions, a solid oak low coffee table, a wabi-sabi ceramic vase with dried pampas grass, a shoji-style paper floor lamp, a natural fiber area rug in warm beige' : ''}${style === 'Bohemian' ? 'a rattan sofa with colorful terracotta and teal cushions, layered kilim rugs on the floor, a macrame wall hanging on the side wall, trailing pothos plants on a wooden shelf, warm amber pendant lights' : ''}
 
-RETURN ONLY THE PROMPT. Nothing else.
-No explanations. No bullet points.
-One detailed paragraph.`,
+STRICT RULES — NEVER VIOLATE THESE:
+- Window count, positions and sizes must be IDENTICAL to the original photo
+- Wall color must be IDENTICAL
+- Floor material and color must be IDENTICAL
+- Ceiling must be IDENTICAL
+- Camera angle and perspective must be IDENTICAL
+- Only furniture and decor are added
+
+OUTPUT: Return ONLY the filled-in prompt. One paragraph. No explanations, no labels, no bullet points.`,
               },
             ],
           }],
@@ -135,7 +123,7 @@ One detailed paragraph.`,
       successModel = 'fallback'
     }
 
-    res.json({ prompt, success: true, model: successModel })
+    res.json({ prompt, imageBase64, success: true, model: successModel })
   } catch (err) {
     console.error('Route error:', err.message)
     res.status(500).json({ error: err.message, success: false })
@@ -143,77 +131,92 @@ One detailed paragraph.`,
 })
 
 // ============================================
-// ROUTE 2: NVIDIA NIM Flux generates room image
+// ROUTE 2: Bytez SDXL generates room image
 // ============================================
 app.post('/api/generate-image', async (req, res) => {
   try {
     const { prompt } = req.body
-    console.log('NVIDIA Flux generating image...')
-    console.log('Prompt:', prompt.substring(0, 100))
-    console.log('NVIDIA key exists:', !!process.env.NVIDIA_API_KEY)
+    console.log('=== BYTEZ IMAGE GENERATION ===')
+    console.log('API Key exists:', !!process.env.BYTEZ_API_KEY)
+    console.log('API Key starts with:', process.env.BYTEZ_API_KEY?.substring(0, 8))
+    console.log('Prompt:', prompt?.substring(0, 100))
 
-    const response = await fetch('https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-schnell', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.NVIDIA_API_KEY}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt: prompt,
-        negative_prompt: 'different room, changed walls, moved windows, wrong perspective, cartoon, painting, illustration, low quality, blurry',
-        cfg_scale: 0,
-        steps: 4,
-        seed: Math.floor(Math.random() * 2147483647),
-        samples: 1,
-      }),
-    })
+    const sdk = new Bytez(process.env.BYTEZ_API_KEY)
+    const model = sdk.model('stabilityai/stable-diffusion-xl-base-1.0')
 
-    console.log('NVIDIA response status:', response.status)
+    console.log('Running SDXL model...')
+    const { error, output } = await model.run(
+      prompt + ', photorealistic, 8k, professional interior design photography, high resolution'
+    )
 
-    if (response.status === 401) throw new Error('NVIDIA API key is invalid or expired')
-    if (response.status === 402) throw new Error('NVIDIA API credits exhausted')
-    if (response.status === 429) throw new Error('NVIDIA API rate limit hit, try again in a moment')
-    if (response.status === 422) {
-      // negative_prompt not supported — retry without it
-      console.log('422 received, retrying without negative_prompt...')
-      const retry = await fetch('https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-schnell', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.NVIDIA_API_KEY}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ prompt, cfg_scale: 0, steps: 4, seed: Math.floor(Math.random() * 2147483647), samples: 1 }),
-      })
-      if (!retry.ok) {
-        const errText = await retry.text()
-        throw new Error(`NVIDIA error ${retry.status}: ${errText}`)
+    console.log('Bytez error:', error)
+    console.log('Bytez output type:', typeof output)
+    console.log('Bytez output:', JSON.stringify(output)?.substring(0, 200))
+
+    if (error) throw new Error('Bytez model error: ' + JSON.stringify(error))
+    if (!output) throw new Error('Bytez returned no output')
+
+    // Extract image — handle all possible output formats
+    let base64Image = null
+    let mimeType = 'image/png'
+
+    if (typeof output === 'string') {
+      if (output.startsWith('http')) {
+        // It's a URL — upload directly to Cloudinary by URL
+        console.log('Output is URL, uploading to Cloudinary...')
+        const result = await cloudinary.uploader.upload(output, {
+          folder: 'stylenest-ai',
+          resource_type: 'image',
+          transformation: [{ quality: 'auto', fetch_format: 'auto' }],
+        })
+        return res.json({ imageUrl: result.secure_url, success: true })
       }
-      const retryData = await retry.json()
-      const retryBase64 = retryData.artifacts?.[0]?.base64
-      if (!retryBase64) throw new Error('No image in NVIDIA retry response')
-      return res.json({ imageUrl: `data:image/jpeg;base64,${retryBase64}`, success: true })
-    }
-    if (!response.ok) {
-      const errText = await response.text()
-      throw new Error(`NVIDIA error ${response.status}: ${errText}`)
+      base64Image = output
+    } else if (Array.isArray(output) && output.length > 0) {
+      const first = output[0]
+      if (typeof first === 'string') {
+        if (first.startsWith('http')) {
+          const result = await cloudinary.uploader.upload(first, {
+            folder: 'stylenest-ai',
+            resource_type: 'image',
+          })
+          return res.json({ imageUrl: result.secure_url, success: true })
+        }
+        base64Image = first
+      } else if (first?.url) {
+        const result = await cloudinary.uploader.upload(first.url, {
+          folder: 'stylenest-ai',
+          resource_type: 'image',
+        })
+        return res.json({ imageUrl: result.secure_url, success: true })
+      } else if (first?.base64) {
+        base64Image = first.base64
+      } else if (first?.image) {
+        base64Image = first.image
+      }
+    } else if (typeof output === 'object') {
+      if (output.url || output.image_url || output.imageUrl) {
+        const url = output.url || output.image_url || output.imageUrl
+        const result = await cloudinary.uploader.upload(url, {
+          folder: 'stylenest-ai',
+          resource_type: 'image',
+        })
+        return res.json({ imageUrl: result.secure_url, success: true })
+      }
+      base64Image = output.base64 || output.image || output.images?.[0]?.base64 || output.images?.[0]
     }
 
-    const data = await response.json()
-    console.log('NVIDIA response received')
-
-    const base64Image = data.artifacts?.[0]?.base64
     if (!base64Image) {
-      console.log('Full NVIDIA response:', JSON.stringify(data))
-      throw new Error('No image in NVIDIA response')
+      console.log('FULL OUTPUT:', JSON.stringify(output, null, 2))
+      throw new Error('Cannot extract image from Bytez output. Output type: ' + typeof output + '. Check server logs.')
     }
 
-    const imageUrl = `data:image/jpeg;base64,${base64Image}`
-    console.log('Image successfully generated! Base64 length:', base64Image.length)
+    console.log('Uploading base64 to Cloudinary...')
+    const imageUrl = await uploadToCloudinary(base64Image, mimeType)
+    console.log('SUCCESS! Cloudinary URL:', imageUrl)
     res.json({ imageUrl, success: true })
   } catch (err) {
-    console.error('NVIDIA error:', err.message)
+    console.error('=== GENERATION FAILED ===', err.message)
     res.status(500).json({ error: err.message, success: false })
   }
 })
@@ -223,7 +226,9 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     gemini: !!process.env.GEMINI_API_KEY,
-    nvidia: !!process.env.NVIDIA_API_KEY,
+    bytez: !!process.env.BYTEZ_API_KEY,
+    cloudinary: !!process.env.CLOUDINARY_API_KEY,
+    nvidia: false,
   })
 })
 
@@ -231,5 +236,6 @@ const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
   console.log(`Gemini key loaded: ${!!process.env.GEMINI_API_KEY}`)
-  console.log(`NVIDIA key loaded: ${!!process.env.NVIDIA_API_KEY}`)
+  console.log(`Bytez key loaded: ${!!process.env.BYTEZ_API_KEY}`)
+  console.log(`Cloudinary loaded: ${!!process.env.CLOUDINARY_API_KEY}`)
 })

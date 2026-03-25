@@ -81,18 +81,25 @@ export async function saveDesign({ userId, originalImage, generatedImage, style 
 }
 
 /**
- * Fetch all designs for a specific user
+ * Fetch all designs for a specific user — with 5s timeout fallback
  */
 export async function fetchUserDesigns(userId) {
   if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase
+
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Query timeout')), 5000)
+  )
+
+  const query = supabase
     .from('designs')
-    .select('*')
+    .select('id, user_id, generated_image, original_image, style, processing_time, created_at')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
+    .limit(50)
 
+  const { data, error } = await Promise.race([query, timeout])
   if (error) throw error
-  return data
+  return data ?? []
 }
 
 /**
